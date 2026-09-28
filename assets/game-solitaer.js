@@ -489,7 +489,7 @@ export class SolitaireGame {
 
   frame = (time) => {
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.1, (time - this.last) / 1000);
+    const dt = Math.min(0.1, Math.max(0, (time - this.last) / 1000));
     this.last = time;
     if (!this.paused && !this.won) {
       this.elapsed += dt;

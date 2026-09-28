@@ -190,7 +190,7 @@ class WaterSortGame {
 
   frame = time => {
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.033, (time - this.last) / 1000);
+    const dt = Math.min(0.033, Math.max(0, (time - this.last) / 1000));
     this.last = time;
 
     // Update animations

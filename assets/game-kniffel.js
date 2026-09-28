@@ -299,7 +299,6 @@ export class KniffelGame {
       const dots = diceDots[val] || [];
 
       return `
-      return `
         <button type="button" data-die="${idx}" class="die-btn relative flex-1 aspect-square max-w-[72px] min-h-[64px] rounded-2xl bg-gradient-to-br ${isHeld ? 'from-amber-300 via-amber-400 to-amber-500 ring-4 ring-amber-200 text-bg shadow-[0_8px_16px_rgba(245,158,11,0.6),inset_0_2px_4px_rgba(255,255,255,0.8)] -translate-y-2' : 'from-white via-slate-50 to-slate-200 text-slate-800 shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_4px_6px_rgba(255,255,255,1)] border border-slate-300/50'} flex items-center justify-center p-2 transition-all active:scale-95 cursor-pointer" style="transform: rotate(${angle}deg) ${isHeld ? 'translateY(-10px)' : ''}">
           <div class="w-full h-full relative grid grid-cols-3 grid-rows-3 gap-[2px]">
             ${dots.map(pos => {
