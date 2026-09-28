@@ -411,7 +411,7 @@ export function openChallengesModal() {
 
   const backdrop = document.createElement('div');
   backdrop.id = 'challenges-modal-root';
-  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md animate-fade-in select-none';
+  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center sm:p-3 bg-black/90 backdrop-blur-md animate-fade-in select-none';
 
   function renderContent(activeTab = 'stamps', activeCat = 'all') {
     const state = getChallengesState();
@@ -425,7 +425,7 @@ export function openChallengesModal() {
     }
 
     const modal = document.createElement('div');
-    modal.className = 'flex flex-col w-full max-w-lg max-h-[92vh] bg-surface rounded-3xl border border-line shadow-2xl overflow-hidden animate-pop-in';
+    modal.className = 'flex flex-col w-full h-full sm:max-w-lg sm:h-auto sm:max-h-[92vh] bg-surface sm:rounded-3xl border-0 sm:border border-line shadow-2xl overflow-hidden animate-[slide-up_0.2s_ease-out]';
 
     // Header
     const header = document.createElement('div');

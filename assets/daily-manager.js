@@ -101,13 +101,13 @@ export function openDailyModal() {
 
   const backdrop = document.createElement('div');
   backdrop.id = 'daily-modal-root';
-  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md select-none animate-fade-in';
+  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center sm:p-3 bg-black/90 backdrop-blur-md select-none animate-fade-in';
 
   let currentRotation = 0;
   let isSpinning = false;
 
   const modal = document.createElement('div');
-  modal.className = 'flex flex-col w-full max-w-sm max-h-[90vh] bg-surface rounded-3xl border border-line shadow-2xl overflow-y-auto p-5 text-center space-y-4';
+  modal.className = 'flex flex-col w-full h-full sm:max-w-sm sm:h-auto sm:max-h-[90vh] bg-surface sm:rounded-3xl border-0 sm:border border-line shadow-2xl overflow-y-auto p-5 text-center space-y-4 animate-[slide-up_0.2s_ease-out]';
 
   modal.innerHTML = `
     <div class="flex items-center justify-between border-b border-line pb-3">

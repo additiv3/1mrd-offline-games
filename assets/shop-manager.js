@@ -234,11 +234,38 @@ export function openShopModal() {
 
   const container = document.createElement('div');
   container.id = 'shop-modal-container';
-  container.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:16px;animation:shopFadeIn 0.2s ease-out;';
+  container.className = 'shop-mobile-container';
+  container.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);animation:shopFadeIn 0.2s ease-out;';
 
   const style = document.createElement('style');
   style.textContent = `
-    @keyframes shopFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    @keyframes shopFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .shop-dialog {
+      background:#16122b;
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:28px;
+      width:100%;
+      max-width:480px;
+      max-height:90vh;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 25px 50px -12px rgba(0,0,0,0.6);
+      overflow:hidden;
+      color:#ffffff;
+      font-family:system-ui,-apple-system,sans-serif;
+    }
+    @media (max-width: 640px) {
+      .shop-mobile-container {
+        padding: 0 !important;
+      }
+      .shop-dialog {
+        max-width: 100%;
+        max-height: 100dvh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+      }
+    }
   `;
   container.appendChild(style);
 
@@ -254,7 +281,7 @@ export function openShopModal() {
     container.appendChild(style);
 
     const dialog = document.createElement('div');
-    dialog.style.cssText = 'background:#16122b;border:1px solid rgba(255,255,255,0.12);border-radius:28px;width:100%;max-width:480px;max-height:90vh;display:flex;flex-col;flex-direction:column;box-shadow:0 25px 50px -12px rgba(0,0,0,0.6);overflow:hidden;color:#ffffff;font-family:system-ui,-apple-system,sans-serif;';
+    dialog.className = 'shop-dialog';
 
     // Header
     const header = document.createElement('div');
