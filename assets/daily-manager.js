@@ -130,7 +130,7 @@ export function openDailyModal() {
           <div class="flex flex-col items-center py-1.5 px-0.5 rounded-xl ${isCurrent ? 'bg-amber-400 text-bg font-black scale-105 shadow' : isReached ? 'bg-surface text-amber-400 font-bold' : 'opacity-40 text-ink-muted'} text-[10px]">
             <span>Tag ${d}</span>
             <span class="text-sm mt-0.5">${d === 7 ? '👑' : '🪙'}</span>
-            <span class="text-[9px] mt-0.5">+${d * 15}</span>
+            <span class="text-[9px] mt-0.5">+${d * 10}</span>
           </div>
         `;
       }).join('')}

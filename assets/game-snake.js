@@ -101,7 +101,7 @@ export class SnakeGame {
       { x: 8, y: 10 }
     ];
     this.dir = { x: 1, y: 0 };
-    this.nextDir = { x: 1, y: 0 };
+    this.moveQueue = [];
     this.score = 0;
     this.scoreEl.innerText = '0';
     this.isOver = false;
@@ -120,8 +120,9 @@ export class SnakeGame {
   }
 
   setDirection(dx, dy) {
-    if (this.dir.x + dx === 0 && this.dir.y + dy === 0) return; // Prevent 180 reverse
-    this.nextDir = { x: dx, y: dy };
+    const lastMove = this.moveQueue.length > 0 ? this.moveQueue[this.moveQueue.length - 1] : this.dir;
+    if (lastMove.x + dx === 0 && lastMove.y + dy === 0) return; // Prevent 180 reverse
+    this.moveQueue.push({ x: dx, y: dy });
   }
 
   bindEvents() {
@@ -143,9 +144,10 @@ export class SnakeGame {
     let touchStartX = 0;
     let touchStartY = 0;
     this.canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
-    }, { passive: true });
+    }, { passive: false });
 
     this.canvas.addEventListener('touchend', e => {
       const dx = e.changedTouches[0].clientX - touchStartX;
@@ -155,7 +157,7 @@ export class SnakeGame {
       } else {
         if (Math.abs(dy) > 20) this.setDirection(0, dy > 0 ? 1 : -1);
       }
-    }, { passive: true });
+    }, { passive: false });
   }
 
   startLoop() {
@@ -165,7 +167,9 @@ export class SnakeGame {
   tick() {
     if (this.isOver) return;
 
-    this.dir = this.nextDir;
+    if (this.moveQueue.length > 0) {
+      this.dir = this.moveQueue.shift();
+    }
     const head = { x: this.snake[0].x + this.dir.x, y: this.snake[0].y + this.dir.y };
 
     // Wall collision

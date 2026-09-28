@@ -196,9 +196,10 @@ export class Game2048 {
     let touchStartX = 0;
     let touchStartY = 0;
     this.container.addEventListener('touchstart', e => {
+      e.preventDefault();
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
-    }, { passive: true });
+    }, { passive: false });
 
     this.container.addEventListener('touchend', e => {
       const dx = e.changedTouches[0].clientX - touchStartX;
@@ -208,7 +209,7 @@ export class Game2048 {
       } else {
         if (Math.abs(dy) > 30) this.move(dy > 0 ? 'down' : 'up');
       }
-    }, { passive: true });
+    }, { passive: false });
   }
 
   reset() {
@@ -281,10 +282,10 @@ export class Game2048 {
 
           <!-- Quick Touch Arrows -->
           <div class="grid grid-cols-3 gap-1.5 max-w-[200px] mx-auto w-full pt-1">
-            <button id="dir-up" type="button" class="col-start-2 py-2 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">↑</button>
-            <button id="dir-left" type="button" class="col-start-1 row-start-2 py-2 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">←</button>
-            <button id="dir-down" type="button" class="col-start-2 row-start-2 py-2 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">↓</button>
-            <button id="dir-right" type="button" class="col-start-3 row-start-2 py-2 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">→</button>
+            <button id="dir-up" type="button" class="col-start-2 py-3.5 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">↑</button>
+            <button id="dir-left" type="button" class="col-start-1 row-start-2 py-3.5 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">←</button>
+            <button id="dir-down" type="button" class="col-start-2 row-start-2 py-3.5 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">↓</button>
+            <button id="dir-right" type="button" class="col-start-3 row-start-2 py-3.5 rounded-xl bg-surface-raised border border-line text-sm font-black active:scale-90 transition">→</button>
           </div>
         </div>
       </div>

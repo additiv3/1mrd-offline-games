@@ -326,22 +326,22 @@ export class KniffelGame {
 
       return `
         <tr class="border-b border-line/40 hover:bg-white/5 transition">
-          <td class="py-2.5 px-3">
-            <span class="font-bold text-xs block text-ink">${cat.name}</span>
-            <span class="text-[10px] text-ink-muted">${cat.desc}</span>
+          <td class="py-3 px-3">
+            <span class="font-bold text-sm block text-ink">${cat.name}</span>
+            <span class="text-xs text-ink-muted">${cat.desc}</span>
           </td>
-          <td class="py-2 px-2 text-right">
-            ${s0 !== undefined ? `<span class="font-bold text-sm text-pop-yellow">${s0}</span>` : 
+          <td class="py-3 px-2 text-right">
+            ${s0 !== undefined ? `<span class="font-bold text-base text-pop-yellow">${s0}</span>` : 
               (this.currentPlayer === 0 && preview !== null ? 
-                `<button type="button" data-cat="${cat.id}" class="cat-btn px-2.5 py-1 rounded-xl bg-amber-400/20 text-amber-300 font-extrabold text-xs hover:bg-amber-400/30 active:scale-95 transition cursor-pointer">+${preview}</button>` : 
-                (this.currentPlayer === 0 ? `<button type="button" data-cat="${cat.id}" class="cat-btn px-2 py-1 rounded-xl bg-surface-raised text-ink-muted text-xs active:scale-95 transition">-</button>` : `<span class="text-xs text-ink-muted">-</span>`))}
+                `<button type="button" data-cat="${cat.id}" class="cat-btn px-3 py-2.5 rounded-xl bg-amber-400/20 text-amber-300 font-extrabold text-xs hover:bg-amber-400/30 active:scale-95 transition cursor-pointer">+${preview}</button>` : 
+                (this.currentPlayer === 0 ? `<button type="button" data-cat="${cat.id}" class="cat-btn px-3 py-2.5 rounded-xl bg-surface-raised text-ink-muted text-xs active:scale-95 transition">-</button>` : `<span class="text-sm text-ink-muted">-</span>`))}
           </td>
           ${this.mode !== 'solo' ? `
-            <td class="py-2 px-2 text-right">
-              ${s1 !== undefined ? `<span class="font-bold text-sm text-pop-cyan">${s1}</span>` : 
+            <td class="py-3 px-2 text-right">
+              ${s1 !== undefined ? `<span class="font-bold text-base text-pop-cyan">${s1}</span>` : 
                 (this.currentPlayer === 1 && preview !== null && !isBotTurn ? 
-                  `<button type="button" data-cat="${cat.id}" class="cat-btn px-2.5 py-1 rounded-xl bg-cyan-400/20 text-cyan-300 font-extrabold text-xs hover:bg-cyan-400/30 active:scale-95 transition cursor-pointer">+${preview}</button>` : 
-                  `<span class="text-xs text-ink-muted">-</span>`)}
+                  `<button type="button" data-cat="${cat.id}" class="cat-btn px-3 py-2.5 rounded-xl bg-cyan-400/20 text-cyan-300 font-extrabold text-xs hover:bg-cyan-400/30 active:scale-95 transition cursor-pointer">+${preview}</button>` : 
+                  `<span class="text-sm text-ink-muted">-</span>`)}
             </td>
           ` : ''}
         </tr>

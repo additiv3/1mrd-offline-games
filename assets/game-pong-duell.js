@@ -192,8 +192,13 @@ class PongDuellGame {
   };
 
   updatePaddlesFromTouches() {
-    for (const [, pos] of this.activeTouches) {
-      if (this.is2Player) {
+    if (!this.is2Player) {
+      const firstTouch = this.activeTouches.values().next().value;
+      if (firstTouch) {
+        this.p1TargetX = firstTouch.x - this.paddleW / 2;
+      }
+    } else {
+      for (const [, pos] of this.activeTouches) {
         if (pos.y > this.height / 2) {
           // Bottom player (P1)
           this.p1TargetX = pos.x - this.paddleW / 2;
@@ -201,9 +206,6 @@ class PongDuellGame {
           // Top player (P2)
           this.p2TargetX = pos.x - this.paddleW / 2;
         }
-      } else {
-        // Solo mode: any touch controls bottom paddle
-        this.p1TargetX = pos.x - this.paddleW / 2;
       }
     }
   }
@@ -263,6 +265,24 @@ class PongDuellGame {
       this.p2X += (this.p2TargetX - this.p2X) * Math.min(1, dt * 25);
     }
     this.p2X = Math.max(8, Math.min(this.width - this.paddleW - 8, this.p2X));
+
+    // Continuous Collision Detection
+    const nextY = this.ballY + this.ballVy * dt;
+    if (this.ballVy > 0 && this.ballY + this.ballR <= this.p1Y && nextY + this.ballR >= this.p1Y) {
+      const t = (this.p1Y - (this.ballY + this.ballR)) / this.ballVy;
+      const crossX = this.ballX + this.ballVx * t;
+      if (crossX >= this.p1X - 4 && crossX <= this.p1X + this.paddleW + 4) {
+        this.ballY = this.p1Y - this.ballR - this.ballVy * dt + 1;
+        this.ballX = crossX - this.ballVx * dt;
+      }
+    } else if (this.ballVy < 0 && this.ballY - this.ballR >= this.p2Y + this.paddleH && nextY - this.ballR <= this.p2Y + this.paddleH) {
+      const t = (this.p2Y + this.paddleH - (this.ballY - this.ballR)) / this.ballVy;
+      const crossX = this.ballX + this.ballVx * t;
+      if (crossX >= this.p2X - 4 && crossX <= this.p2X + this.paddleW + 4) {
+        this.ballY = this.p2Y + this.paddleH + this.ballR - this.ballVy * dt - 1;
+        this.ballX = crossX - this.ballVx * dt;
+      }
+    }
 
     // Ball motion
     this.ballX += this.ballVx * dt;
@@ -373,10 +393,11 @@ class PongDuellGame {
       : winner === 1
       ? 'Du hast gewonnen! 🏆'
       : 'KI gewinnt!';
+    const winnerScore = winner === 1 ? this.p1Score : this.p2Score;
     setTimeout(() => {
       this.ctx.reportResult({
         outcome: 'completed',
-        score: this.p1Score,
+        score: winnerScore,
         headline
       });
     }, 1200);

@@ -79,20 +79,36 @@ function generatePuzzle(numColors) {
   // Shuffle reverse moves
   let moves = 0;
   let attempts = 0;
-  while (moves < numColors * 15 && attempts < 500) {
+  while (moves < numColors * 25 && attempts < 2000) {
     attempts++;
     const fromIdx = Math.floor(Math.random() * tubes.length);
     const toIdx = Math.floor(Math.random() * tubes.length);
     if (fromIdx === toIdx) continue;
+    
     const from = tubes[fromIdx];
     const to = tubes[toIdx];
     if (from.length === 0 || to.length >= TUBE_CAPACITY) continue;
 
-    // Move top color from 'from' to 'to'
     const color = from[from.length - 1];
-    from.pop();
-    to.push(color);
-    moves++;
+    let c_count = 0;
+    for (let i = from.length - 1; i >= 0; i--) {
+      if (from[i] === color) c_count++;
+      else break;
+    }
+
+    const isOnlyColor = (c_count === from.length);
+    const maxK = Math.min(TUBE_CAPACITY - to.length, isOnlyColor ? c_count : c_count - 1);
+    
+    if (maxK >= 1) {
+      const k = Math.floor(Math.random() * maxK) + 1;
+      if (to.length === 0 && k === from.length) continue; // Avoid useless move
+
+      for (let i = 0; i < k; i++) {
+        from.pop();
+        to.push(color);
+      }
+      moves++;
+    }
   }
 
   return tubes.map(t => [...t]);

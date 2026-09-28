@@ -181,7 +181,7 @@ export function modifyShellCoins(delta) {
     p.coins = Math.max(0, (p.coins || 0) + delta);
     localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(p));
     // Dispatch storage event so shell listeners update immediately
-    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new CustomEvent('coins-updated', { detail: { coins: p.coins } }));
     return p.coins;
   } catch (e) {}
   return 0;

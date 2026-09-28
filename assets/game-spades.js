@@ -165,12 +165,16 @@ export class SpadesGame {
 
   estimateBotBid(hand) {
     let bid = 0;
+    const suitCounts = { spades: 0, hearts: 0, diamonds: 0, clubs: 0 };
+    for (let c of hand) suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+    
     for (let c of hand) {
       if (c.value === 12) bid += 1; // Ace
-      else if (c.value === 11 && Math.random() < 0.7) bid += 1; // King
-      else if (c.suit === 'spades' && c.value >= 9) bid += 1; // High spade
+      else if (c.value === 11 && suitCounts[c.suit] >= 4) bid += 0.5; // King in long suit
+      
+      if (c.suit === 'spades' && c.value >= 9) bid += 0.5; // Spade above 10
     }
-    return Math.max(1, Math.min(6, bid));
+    return Math.max(1, Math.round(bid));
   }
 
   onPointerDown = (e) => {
@@ -271,11 +275,52 @@ export class SpadesGame {
     const botHand = this.playerHands[this.turn];
     if (botHand.length === 0) return;
 
-    // Pick a legal card
-    const legalCards = botHand.filter(c => this.isLegalPlay(c, botHand));
-    // Pick lowest legal card or highest if can win
-    legalCards.sort((a, b) => a.value - b.value);
-    const chosen = legalCards[0] || botHand[0];
+    let legalCards = botHand.filter(c => this.isLegalPlay(c, botHand));
+    if (legalCards.length === 0) legalCards = [botHand[0]];
+    
+    let chosen = legalCards[0];
+
+    if (this.currentTrick.length === 0) {
+      let nonSpades = legalCards.filter(c => c.suit !== 'spades');
+      let pool = nonSpades.length > 0 ? nonSpades : legalCards;
+      pool.sort((a, b) => b.value - a.value);
+      chosen = pool.length > 1 ? pool[Math.floor(pool.length / 2)] : pool[0];
+    } else {
+      const leadSuit = this.currentTrick[0].card.suit;
+      let winningIndex = 0;
+      let highestSpade = -1;
+      let highestLead = -1;
+      
+      for (let i = 0; i < this.currentTrick.length; i++) {
+        const c = this.currentTrick[i].card;
+        if (c.suit === 'spades') {
+          if (c.value > highestSpade) { highestSpade = c.value; winningIndex = i; }
+        } else if (highestSpade === -1 && c.suit === leadSuit) {
+          if (c.value > highestLead) { highestLead = c.value; winningIndex = i; }
+        }
+      }
+      
+      const winningPlayer = this.currentTrick[winningIndex].player;
+      const partner = (this.turn + 2) % 4;
+      const partnerWinning = (winningPlayer === partner);
+      
+      legalCards.sort((a, b) => a.value - b.value);
+      
+      if (partnerWinning) {
+        chosen = legalCards[0];
+      } else {
+        let winningCards = legalCards.filter(c => {
+          if (c.suit === 'spades') return c.value > highestSpade;
+          if (highestSpade === -1 && c.suit === leadSuit) return c.value > highestLead;
+          return false;
+        });
+        if (winningCards.length > 0) {
+          chosen = winningCards[0]; // win cheaply
+        } else {
+          chosen = legalCards[0]; // play lowest
+        }
+      }
+    }
 
     const idx = botHand.indexOf(chosen);
     botHand.splice(idx, 1);

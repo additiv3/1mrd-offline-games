@@ -43,6 +43,7 @@ export class WhackAMoleGame {
     // 9 holes: state of each: null or { type: 'normal'|'gold'|'bomb', timer: number }
     this.holes = Array(this.holesCount).fill(null);
     this.bestScore = this.ctx.storage?.get('mole:best', 0) || 0;
+    this.timeouts = [];
   }
 
   startGame() {
@@ -79,7 +80,7 @@ export class WhackAMoleGame {
       this.holes[idx] = { type, active: true };
       this.renderHole(idx);
 
-      setTimeout(() => {
+      const tId = setTimeout(() => {
         if (this.holes[idx] && this.holes[idx].active) {
           this.holes[idx] = null;
           this.combo = 0;
@@ -87,6 +88,7 @@ export class WhackAMoleGame {
           this.updateHeader();
         }
       }, stayTime);
+      this.timeouts.push(tId);
     }
 
     const nextDelay = Math.max(350, 750 - (35 - this.timeLeft) * 10);
@@ -155,6 +157,7 @@ export class WhackAMoleGame {
   reset() {
     clearInterval(this.gameTimer);
     clearTimeout(this.spawnTimeout);
+    if (this.timeouts) this.timeouts.forEach(clearTimeout);
     this.initGame();
     this.render();
   }
@@ -162,6 +165,7 @@ export class WhackAMoleGame {
   pause() {
     clearInterval(this.gameTimer);
     clearTimeout(this.spawnTimeout);
+    if (this.timeouts) this.timeouts.forEach(clearTimeout);
   }
 
   resume() {
@@ -173,6 +177,7 @@ export class WhackAMoleGame {
   dispose() {
     clearInterval(this.gameTimer);
     clearTimeout(this.spawnTimeout);
+    if (this.timeouts) this.timeouts.forEach(clearTimeout);
     this.container.innerHTML = '';
   }
 
@@ -197,7 +202,8 @@ export class WhackAMoleGame {
       holeEl.innerHTML = `
         <span class="text-xl font-black text-pop-yellow animate-pop-in drop-shadow">${hitText}</span>
       `;
-      setTimeout(() => this.renderHole(idx), 350);
+      const tId = setTimeout(() => this.renderHole(idx), 350);
+      this.timeouts.push(tId);
       return;
     }
 
