@@ -107,7 +107,7 @@ export function openDailyModal() {
   let isSpinning = false;
 
   const modal = document.createElement('div');
-  modal.className = 'flex flex-col w-full max-w-sm bg-surface rounded-3xl border border-line shadow-2xl overflow-hidden p-5 text-center space-y-4';
+  modal.className = 'flex flex-col w-full max-w-sm max-h-[90vh] bg-surface rounded-3xl border border-line shadow-2xl overflow-y-auto p-5 text-center space-y-4';
 
   modal.innerHTML = `
     <div class="flex items-center justify-between border-b border-line pb-3">

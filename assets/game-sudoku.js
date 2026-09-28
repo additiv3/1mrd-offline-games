@@ -364,11 +364,11 @@ class SudokuGame {
     if (this.rootEl) this.rootEl.remove();
 
     this.rootEl = document.createElement('div');
-    this.rootEl.className = 'flex flex-col h-full max-w-md mx-auto p-3 text-ink select-none';
+    this.rootEl.className = 'flex flex-col h-full w-full max-w-md mx-auto p-2 text-ink select-none overflow-hidden';
 
     // Header info bar
     const infoBar = document.createElement('div');
-    infoBar.className = 'flex items-center justify-between px-2 py-2 text-xs font-bold text-ink-muted';
+    infoBar.className = 'flex items-center justify-between px-2 py-2 text-xs font-bold text-ink-muted flex-none';
     infoBar.innerHTML = `
       <div class="flex items-center gap-2">
         <span class="px-2.5 py-1 rounded-full bg-surface-raised uppercase tracking-wider text-[11px] text-ink font-black">${this.difficulty}</span>
@@ -380,9 +380,15 @@ class SudokuGame {
       </div>
     `;
 
-    // 9x9 Board container
+    // 9x9 Board container wrapper to allow proper scaling/shrinking
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'flex-1 min-h-0 flex flex-col items-center justify-center w-full px-1';
+
     const boardContainer = document.createElement('div');
-    boardContainer.className = 'relative aspect-square w-full my-auto max-w-[360px] mx-auto rounded-2xl bg-surface-raised border-2 border-line/80 shadow-2xl p-1.5 grid grid-cols-9 gap-[2px]';
+    // Using grid-template-columns: repeat(9, 1fr) explicitly via style to satisfy prompt
+    boardContainer.style.display = 'grid';
+    boardContainer.style.gridTemplateColumns = 'repeat(9, 1fr)';
+    boardContainer.className = 'w-full max-w-[400px] aspect-square rounded-xl bg-surface-raised border-[3px] border-white/50 shadow-2xl p-0 gap-0';
     boardContainer.id = 'sudoku-board';
 
     for (let r = 0; r < 9; r++) {
@@ -393,51 +399,53 @@ class SudokuGame {
         cell.setAttribute('data-r', String(r));
         cell.setAttribute('data-c', String(c));
 
-        // Subgrid border styling
-        const borderRight = (c === 2 || c === 5) ? 'border-r-2 border-r-white/40' : '';
-        const borderBottom = (r === 2 || r === 5) ? 'border-b-2 border-b-white/40' : '';
+        // Subgrid border styling - thick borders for 3x3 boxes
+        const borderRight = (c === 2 || c === 5) ? 'border-r-[3px] border-r-white/50' : 'border-r border-r-white/10';
+        const borderBottom = (r === 2 || r === 5) ? 'border-b-[3px] border-b-white/50' : 'border-b border-b-white/10';
 
-        cell.className = `relative aspect-square flex items-center justify-center font-black text-lg md:text-xl rounded-lg transition-colors duration-100 ${borderRight} ${borderBottom}`;
+        cell.className = `relative aspect-square flex items-center justify-center font-bold text-xl md:text-2xl transition-colors duration-100 ${borderRight} ${borderBottom}`;
         cell.addEventListener('click', () => this.selectCell(r, c));
         boardContainer.appendChild(cell);
       }
     }
 
+    boardWrapper.appendChild(boardContainer);
+
     // Tools & Action Bar
     const toolBar = document.createElement('div');
-    toolBar.className = 'grid grid-cols-4 gap-2 my-2';
+    toolBar.className = 'grid grid-cols-4 gap-2 py-2 flex-none';
     toolBar.innerHTML = `
-      <button id="btn-undo" type="button" class="py-2.5 rounded-2xl bg-surface-raised text-xs font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-0.5">
-        <span class="text-base">↩️</span>
+      <button id="btn-undo" type="button" class="py-2 rounded-xl bg-surface-raised text-[10px] font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-1">
+        <span class="text-lg leading-none">↩️</span>
         <span>Rückgängig</span>
       </button>
-      <button id="btn-erase" type="button" class="py-2.5 rounded-2xl bg-surface-raised text-xs font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-0.5">
-        <span class="text-base">🧹</span>
+      <button id="btn-erase" type="button" class="py-2 rounded-xl bg-surface-raised text-[10px] font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-1">
+        <span class="text-lg leading-none">🧹</span>
         <span>Löschen</span>
       </button>
-      <button id="btn-pencil" type="button" class="py-2.5 rounded-2xl text-xs font-bold active:scale-95 transition flex flex-col items-center gap-0.5 ${this.pencilMode ? 'bg-pop-yellow text-bg font-black shadow-md' : 'bg-surface-raised text-ink-muted'}">
-        <span class="text-base">✏️</span>
+      <button id="btn-pencil" type="button" class="py-2 rounded-xl text-[10px] font-bold active:scale-95 transition flex flex-col items-center gap-1 ${this.pencilMode ? 'bg-pop-yellow text-bg font-black shadow-md' : 'bg-surface-raised text-ink-muted'}">
+        <span class="text-lg leading-none">✏️</span>
         <span>Notizen ${this.pencilMode ? 'AN' : 'AUS'}</span>
       </button>
-      <button id="btn-hint" type="button" class="py-2.5 rounded-2xl bg-surface-raised text-xs font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-0.5">
-        <span class="text-base">💡</span>
+      <button id="btn-hint" type="button" class="py-2 rounded-xl bg-surface-raised text-[10px] font-bold text-ink-muted active:scale-95 transition flex flex-col items-center gap-1">
+        <span class="text-lg leading-none">💡</span>
         <span>Tipp</span>
       </button>
     `;
 
     const numPad = document.createElement('div');
-    numPad.className = 'grid grid-cols-9 gap-1.5 pb-2 pt-1';
+    numPad.className = 'grid grid-cols-9 gap-1 pb-4 pt-1 flex-none';
     for (let n = 1; n <= 9; n++) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'py-3 aspect-[4/5] rounded-2xl bg-surface-raised font-black text-xl text-ink shadow-md active:scale-90 active:bg-pop-yellow active:text-bg transition grid place-items-center border border-line hover:border-amber-400/40 cursor-pointer';
+      btn.className = 'h-11 rounded-xl bg-surface-raised font-black text-xl text-ink shadow-sm active:scale-90 active:bg-pop-yellow active:text-bg transition flex items-center justify-center border border-line hover:border-amber-400/40 cursor-pointer';
       btn.textContent = String(n);
       btn.addEventListener('click', () => this.enterNumber(n));
       numPad.appendChild(btn);
     }
 
     this.rootEl.appendChild(infoBar);
-    this.rootEl.appendChild(boardContainer);
+    this.rootEl.appendChild(boardWrapper);
     this.rootEl.appendChild(toolBar);
     this.rootEl.appendChild(numPad);
 
@@ -450,7 +458,7 @@ class SudokuGame {
     this.rootEl.querySelector('#btn-pencil')?.addEventListener('click', e => {
       this.pencilMode = !this.pencilMode;
       const btn = e.currentTarget;
-      btn.className = `py-2.5 rounded-2xl text-xs font-bold active:scale-95 transition flex flex-col items-center gap-0.5 ${this.pencilMode ? 'bg-pop-yellow text-bg font-black shadow-md' : 'bg-surface-raised text-ink-muted'}`;
+      btn.className = `py-2 rounded-xl text-[10px] font-bold active:scale-95 transition flex flex-col items-center gap-1 ${this.pencilMode ? 'bg-pop-yellow text-bg font-black shadow-md' : 'bg-surface-raised text-ink-muted'}`;
       btn.querySelector('span:last-child').textContent = `Notizen ${this.pencilMode ? 'AN' : 'AUS'}`;
     });
     this.rootEl.querySelector('#btn-hint')?.addEventListener('click', () => this.giveHint());
@@ -481,26 +489,28 @@ class SudokuGame {
 
         // Background styling
         if (isSelected) {
-          cell.style.backgroundColor = '#38bdf8'; // Sky blue highlight
+          cell.style.backgroundColor = '#fbbf24'; // Amber highlight
           cell.style.color = '#000000';
         } else if (isSameNum) {
-          cell.style.backgroundColor = 'rgba(56, 189, 248, 0.35)';
+          cell.style.backgroundColor = 'rgba(251, 191, 36, 0.4)'; // Amber transparent
           cell.style.color = '#ffffff';
         } else if (inSameRow || inSameCol || inSameBox) {
-          cell.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          cell.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
           cell.style.color = '#ffffff';
         } else {
-          cell.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+          cell.style.backgroundColor = 'transparent';
           cell.style.color = '#ffffff';
         }
 
         if (isError) {
-          cell.style.backgroundColor = 'rgba(239, 68, 68, 0.4)';
-          cell.style.color = '#f87171';
+          cell.style.backgroundColor = '#ef4444'; // Red background
+          cell.style.color = '#ffffff';
         } else if (isInitial && !isSelected) {
-          cell.style.color = '#e2e8f0'; // Clean bold white/grey for initial
+          cell.style.color = '#ffffff'; // Given numbers
+          cell.style.fontWeight = '900';
         } else if (!isInitial && !isSelected && !isError) {
-          cell.style.color = '#38bdf8'; // Soft cyan for player input
+          cell.style.color = '#93c5fd'; // User entered: Light blue
+          cell.style.fontWeight = '500';
         }
 
         // Cell content
@@ -509,9 +519,9 @@ class SudokuGame {
         } else {
           const notesSet = this.notes[r][c];
           if (notesSet && notesSet.size > 0) {
-            let notesGrid = '<div class="grid grid-cols-3 w-full h-full text-[8px] font-bold leading-none p-0.5 pointer-events-none text-ink-muted/80">';
+            let notesGrid = '<div class="grid grid-cols-3 w-full h-full text-[9px] font-bold leading-none p-0.5 pointer-events-none text-ink-muted/80">';
             for (let n = 1; n <= 9; n++) {
-              notesGrid += `<span class="grid place-items-center">${notesSet.has(n) ? n : ''}</span>`;
+              notesGrid += `<span class="flex items-center justify-center">${notesSet.has(n) ? n : ''}</span>`;
             }
             notesGrid += '</div>';
             cell.innerHTML = notesGrid;

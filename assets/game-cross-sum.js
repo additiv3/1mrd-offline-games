@@ -172,34 +172,39 @@ export class CrossSumGame {
       curColSums.push(s);
     }
 
-    let gridHtml = '';
-    // Header Col Sums
-    gridHtml += '<div class="grid grid-cols-5 gap-1.5 mb-1.5 text-center font-black text-xs">';
-    gridHtml += '<div class="p-2 text-ink-muted flex items-center justify-center">∑</div>';
+    let gridHtml = '<div class="grid grid-cols-5 bg-line gap-px p-px mx-auto w-full max-w-[360px] aspect-square rounded shadow-sm">';
+
+    // Row 0 (Top headers)
+    gridHtml += `
+      <div class="relative bg-surface-raised overflow-hidden">
+        <svg class="absolute inset-0 w-full h-full text-line opacity-60" preserveAspectRatio="none"><line x1="0" y1="0" x2="100%" y2="100%" stroke="currentColor" stroke-width="1"></line></svg>
+      </div>
+    `;
     for (let c = 0; c < size; c++) {
       const match = curColSums[c] === colSums[c];
       const over = curColSums[c] > colSums[c];
+      const ringClass = match ? 'ring-2 ring-inset ring-emerald-500 z-10' : over ? 'ring-2 ring-inset ring-red-500 z-10' : '';
+      const textColor = match ? 'text-emerald-500' : over ? 'text-red-500' : 'text-ink-muted';
+      
       gridHtml += `
-        <div class="py-1 px-1 rounded-xl ${match ? 'bg-emerald-500/20 text-emerald-400' : over ? 'bg-red-500/20 text-red-400' : 'bg-surface-raised text-ink-muted'} flex flex-col items-center">
-          <span class="text-[10px] opacity-70">↓</span>
-          <span>${colSums[c]}</span>
-          <span class="text-[9px] font-normal ${match ? 'text-emerald-400 font-bold' : ''}">(${curColSums[c]})</span>
+        <div class="relative bg-surface-raised overflow-hidden ${ringClass}">
+          <svg class="absolute inset-0 w-full h-full text-line opacity-60" preserveAspectRatio="none"><line x1="0" y1="0" x2="100%" y2="100%" stroke="currentColor" stroke-width="1"></line></svg>
+          <span class="absolute top-1 right-1.5 text-xs md:text-sm font-black ${textColor}">${colSums[c]}</span>
         </div>
       `;
     }
-    gridHtml += '</div>';
 
-    // Rows
+    // Rows 1-4
     for (let r = 0; r < size; r++) {
       const matchRow = curRowSums[r] === rowSums[r];
       const overRow = curRowSums[r] > rowSums[r];
+      const ringClassRow = matchRow ? 'ring-2 ring-inset ring-emerald-500 z-10' : overRow ? 'ring-2 ring-inset ring-red-500 z-10' : '';
+      const textColorRow = matchRow ? 'text-emerald-500' : overRow ? 'text-red-500' : 'text-ink-muted';
 
-      gridHtml += '<div class="grid grid-cols-5 gap-1.5 mb-1.5 text-center">';
-      // Row Sum indicator on left
       gridHtml += `
-        <div class="py-2 px-1 rounded-xl ${matchRow ? 'bg-emerald-500/20 text-emerald-400' : overRow ? 'bg-red-500/20 text-red-400' : 'bg-surface-raised text-ink-muted'} font-black text-xs flex flex-col items-center justify-center">
-          <span>${rowSums[r]}</span>
-          <span class="text-[9px] font-normal ${matchRow ? 'text-emerald-400 font-bold' : ''}">(${curRowSums[r]})</span>
+        <div class="relative bg-surface-raised overflow-hidden ${ringClassRow}">
+          <svg class="absolute inset-0 w-full h-full text-line opacity-60" preserveAspectRatio="none"><line x1="0" y1="0" x2="100%" y2="100%" stroke="currentColor" stroke-width="1"></line></svg>
+          <span class="absolute bottom-1 left-1.5 text-xs md:text-sm font-black ${textColorRow}">${rowSums[r]}</span>
         </div>
       `;
 
@@ -208,54 +213,65 @@ export class CrossSumGame {
         const isSel = this.selected[0] === r && this.selected[1] === c;
         const isGiv = given[r][c];
         const val = userGrid[r][c];
+        const isFilled = val !== 0;
 
         gridHtml += `
-          <button type="button" data-r="${r}" data-c="${c}" class="cell-btn aspect-square rounded-2xl ${isSel ? 'ring-4 ring-amber-400 bg-surface-raised scale-102 shadow-lg shadow-amber-400/20' : 'bg-surface'} border-2 border-line/80 flex items-center justify-center font-black text-2xl transition active:scale-95 ${isGiv ? 'text-slate-400 bg-white/5 font-extrabold cursor-default' : 'text-cyan-400 cursor-pointer'} shadow-sm">
-            ${val !== 0 ? val : ''}
+          <button type="button" data-r="${r}" data-c="${c}" class="cell-btn relative bg-white dark:bg-[#1e293b] flex items-center justify-center font-black text-2xl sm:text-3xl transition-colors ${isSel ? 'bg-amber-100 dark:bg-amber-900/40 ring-2 ring-inset ring-amber-400 z-10' : ''} ${isGiv ? 'text-slate-400 dark:text-slate-500 font-extrabold cursor-default' : 'text-cyan-600 dark:text-cyan-400 cursor-pointer'} hover:bg-slate-50 dark:hover:bg-slate-800">
+            ${isFilled ? val : ''}
           </button>
         `;
       }
-      gridHtml += '</div>';
     }
+    gridHtml += '</div>';
 
     // Number Pad
-    let numpadHtml = '';
+    let numpadHtml = '<div class="flex justify-between gap-1 w-full max-w-[400px] mx-auto">';
     for (let n = 1; n <= 9; n++) {
       numpadHtml += `
-        <button type="button" data-num="${n}" class="num-btn py-3.5 rounded-2xl bg-surface-raised border border-line text-xl font-black text-ink hover:bg-white/10 active:scale-95 transition cursor-pointer shadow-md">
+        <button type="button" data-num="${n}" class="num-btn flex-1 aspect-[3/4] min-w-[32px] min-h-[44px] rounded-lg bg-surface-raised border border-line text-xl font-black text-ink hover:bg-white/10 active:scale-95 transition-transform cursor-pointer shadow-sm flex items-center justify-center">
           ${n}
         </button>
       `;
     }
+    numpadHtml += '</div>';
 
     this.container.innerHTML = `
-      <div class="h-full w-full flex flex-col bg-bg select-none p-4 overflow-y-auto max-w-md mx-auto text-ink font-sans">
+      <div class="h-full w-full flex flex-col bg-bg select-none overflow-hidden text-ink font-sans p-2 pb-safe">
         <!-- Top Info -->
-        <div class="flex items-center justify-between py-2 border-b border-line mb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">➕</span>
-            <div>
-              <h2 class="text-sm font-black leading-tight">Cross Sum</h2>
-              <p class="text-[11px] text-ink-muted">Erreiche die Zeilen- und Spaltensummen</p>
+        <div class="flex items-center justify-between py-2 px-4 mx-auto w-full max-w-[400px] bg-surface-raised rounded-2xl border border-line mb-3 shrink-0 shadow-sm mt-1">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl drop-shadow-sm">➕</span>
+            <div class="flex flex-col justify-center">
+              <h2 class="text-sm font-black leading-tight tracking-wide">Cross Sum</h2>
+              <span class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">\${this.difficulty}</span>
             </div>
           </div>
-          <span class="text-xs px-2.5 py-1 rounded-full bg-surface-raised text-pop-yellow font-bold uppercase">${this.difficulty}</span>
+          <div class="flex flex-col items-end">
+             <span class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Score</span>
+             <span class="font-black text-ink text-sm leading-tight">\${this.difficulty === 'schwer' ? 45 : this.difficulty === 'mittel' ? 30 : 20}</span>
+          </div>
         </div>
 
         <!-- Puzzle Grid -->
-        <div class="flex-1 flex flex-col justify-center my-2">
-          ${gridHtml}
+        <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full mb-3 px-1">
+          \${gridHtml}
         </div>
 
         <!-- Controls -->
-        <div class="flex gap-2 my-2">
-          <button id="undo-btn" type="button" class="flex-1 py-2.5 rounded-xl bg-surface border border-line font-bold text-xs text-ink-muted active:scale-95 transition">↩️ Rückgängig</button>
-          <button id="erase-btn" type="button" class="flex-1 py-2.5 rounded-xl bg-surface border border-line font-bold text-xs text-ink-muted active:scale-95 transition">🧹 Löschen</button>
+        <div class="flex gap-3 justify-center w-full max-w-[400px] mx-auto mb-3 shrink-0 px-1">
+          <button id="undo-btn" type="button" class="flex-1 py-3.5 rounded-xl bg-surface-raised border border-line font-bold text-sm text-ink hover:bg-white/5 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+            Undo
+          </button>
+          <button id="erase-btn" type="button" class="flex-1 py-3.5 rounded-xl bg-surface-raised border border-line font-bold text-sm text-ink hover:bg-white/5 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            Erase
+          </button>
         </div>
 
         <!-- Keypad -->
-        <div class="grid grid-cols-5 gap-2 mt-1">
-          ${numpadHtml}
+        <div class="shrink-0 mb-1 px-1">
+          \${numpadHtml}
         </div>
       </div>
     `;
