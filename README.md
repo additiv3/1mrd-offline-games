@@ -1,11 +1,12 @@
-<div align="center">
+# 1 Milliarde Offline Games
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Minispiele fürs Handy – ohne Internet: gegen die KI, zu zweit an einem Handy oder allein.
+(Ungefähr. Ein paar fehlen noch.)
+**Spielen:** https://additiv3.github.io/1mrd-offline-games/
 
-  <h1>Built with AI Studio</h2>
+**iPhone:** Link in Safari öffnen → *Teilen* → *Zum Home-Bildschirm*.
+**Android:** Link in Chrome öffnen → Menü ⋮ → *App installieren*.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+Die App läuft komplett im Browser, funktioniert auch offline und speichert Spielstände nur auf dem eigenen Gerät.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+Dieses Repository enthält nur die fertig gebaute App. Es wird automatisch veröffentlicht.
