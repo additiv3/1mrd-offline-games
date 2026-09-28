@@ -72,12 +72,10 @@ function playTone(freq, type = 'sine', duration = 0.15) {
 function addCoins(amount) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PROGRESS);
-    if (raw) {
-      const prog = JSON.parse(raw);
-      prog.coins = (prog.coins || 0) + amount;
-      localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(prog));
-      window.dispatchEvent(new CustomEvent('coins-updated', { detail: prog.coins }));
-    }
+    const prog = raw ? JSON.parse(raw) : { coins: 0, unlocked: [] };
+    prog.coins = (prog.coins || 0) + amount;
+    localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(prog));
+    window.dispatchEvent(new CustomEvent('coins-updated', { detail: prog.coins }));
   } catch {
     // ignore
   }

@@ -11,18 +11,34 @@ import { getEquippedSkin } from './shop-manager.js';
 export function drawLuxuryCardFront(g, card, x, y, w, h, isSelected = false) {
   g.save();
 
-  // 1. Soft Drop Shadow
-  g.shadowColor = isSelected ? 'rgba(255, 215, 0, 0.65)' : 'rgba(0, 0, 0, 0.35)';
-  g.shadowBlur = isSelected ? 12 : 5;
-  g.shadowOffsetX = 0;
-  g.shadowOffsetY = isSelected ? 0 : 2;
+  // 1. Drop Shadow & Selection Glow (Holographic if selected)
+  if (isSelected) {
+    g.shadowColor = '#00ffc8';
+    g.shadowBlur = 15;
+    g.shadowOffsetX = 0;
+    g.shadowOffsetY = 0;
+  } else {
+    g.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    g.shadowBlur = 8;
+    g.shadowOffsetX = 2;
+    g.shadowOffsetY = 4;
+  }
 
-  // 2. Card Base with subtle ivory gradient
-  const r = Math.max(4, Math.round(w * 0.1));
-  const cardGrad = g.createLinearGradient(x, y, x, y + h);
-  cardGrad.addColorStop(0, '#ffffff');
-  cardGrad.addColorStop(1, '#f9fafb');
-  g.fillStyle = cardGrad;
+  // 2. Card Base (Vintage / Punchy)
+  const r = Math.max(5, Math.round(w * 0.12));
+  
+  // Card base gradient
+  const baseGrad = g.createLinearGradient(x, y, x + w, y + h);
+  if (isSelected) {
+    // Balatro holo effect base
+    baseGrad.addColorStop(0, '#fdfbfb');
+    baseGrad.addColorStop(0.5, '#e2d1c3');
+    baseGrad.addColorStop(1, '#fdfbfb');
+  } else {
+    baseGrad.addColorStop(0, '#f4ebd8'); // Vintage paper color
+    baseGrad.addColorStop(1, '#e3d5b8');
+  }
+  g.fillStyle = baseGrad;
 
   g.beginPath();
   g.roundRect(x, y, w, h, r);
@@ -31,119 +47,118 @@ export function drawLuxuryCardFront(g, card, x, y, w, h, isSelected = false) {
   // Reset shadow for inner graphics
   g.shadowColor = 'transparent';
   g.shadowBlur = 0;
-  g.shadowOffsetX = 0;
-  g.shadowOffsetY = 0;
 
-  // 3. Card Border
-  if (isSelected) {
-    g.strokeStyle = '#ffd700';
-    g.lineWidth = 2.5;
-  } else {
-    g.strokeStyle = 'rgba(0, 0, 0, 0.18)';
-    g.lineWidth = 1;
-  }
+  // 3. Thick Card Border
+  g.strokeStyle = '#222222';
+  g.lineWidth = isSelected ? 3 : 2;
   g.stroke();
 
-  // Color selection
+  // Inner border
+  g.strokeStyle = 'rgba(255,255,255,0.7)';
+  g.lineWidth = 1;
+  g.beginPath();
+  g.roundRect(x + 2, y + 2, w - 4, h - 4, r - 2);
+  g.stroke();
+
+  // Holographic overlay for selected cards
+  if (isSelected) {
+    g.globalCompositeOperation = 'overlay';
+    const holo = g.createLinearGradient(x, y, x + w, y + h);
+    holo.addColorStop(0, 'rgba(255, 0, 0, 0.4)');
+    holo.addColorStop(0.33, 'rgba(0, 255, 0, 0.4)');
+    holo.addColorStop(0.66, 'rgba(0, 0, 255, 0.4)');
+    holo.addColorStop(1, 'rgba(255, 255, 0, 0.4)');
+    g.fillStyle = holo;
+    g.beginPath();
+    g.roundRect(x, y, w, h, r);
+    g.fill();
+    g.globalCompositeOperation = 'source-over';
+  }
+
+  // Color selection (Punchier colors)
   const isRed = card.color === 'red';
-  const mainColor = isRed ? '#dc2626' : '#0f172a';
-  const accentColor = isRed ? '#ef4444' : '#334155';
+  const mainColor = isRed ? '#e62222' : '#1a1a24'; // Brighter red, darker black/blue
+  const shadowColor = isRed ? '#990000' : '#000000'; // 3D text effect
 
-  // 4. Corner Top-Left Rank & Suit (High Legibility)
-  const rankFontSize = Math.max(11, Math.round(w * 0.34));
-  const suitFontSize = Math.max(10, Math.round(w * 0.3));
+  // 4. Corner Rank & Suit (Balatro style - very bold)
+  const rankFontSize = Math.max(12, Math.round(w * 0.4));
+  const suitFontSize = Math.max(10, Math.round(w * 0.35));
 
-  g.fillStyle = mainColor;
-  g.font = `900 ${rankFontSize}px system-ui, -apple-system, sans-serif`;
-  g.textAlign = 'center';
-  g.fillText(card.label, x + Math.round(w * 0.22), y + Math.round(h * 0.26));
+  const drawText3D = (text, tx, ty, font, color, sColor) => {
+    g.font = font;
+    g.textAlign = 'center';
+    // 3D Drop
+    g.fillStyle = sColor;
+    g.fillText(text, tx, ty + 2);
+    // Main
+    g.fillStyle = color;
+    g.fillText(text, tx, ty);
+  };
 
-  g.font = `bold ${suitFontSize}px system-ui, sans-serif`;
-  g.fillText(card.symbol, x + Math.round(w * 0.22), y + Math.round(h * 0.44));
+  const cxRank = x + Math.round(w * 0.22);
+  const cyRank = y + Math.round(h * 0.28);
+  const cySuit = y + Math.round(h * 0.48);
 
-  // Small symmetrical bottom-right indices for larger card viewports
+  drawText3D(card.label, cxRank, cyRank, `900 ${rankFontSize}px "Arial Black", impact, sans-serif`, mainColor, shadowColor);
+  drawText3D(card.symbol, cxRank, cySuit, `900 ${suitFontSize}px "Arial Black", sans-serif`, mainColor, shadowColor);
+
+  // Symmetrical bottom-right for large cards
   if (w >= 48) {
     g.save();
     g.translate(x + w, y + h);
     g.rotate(Math.PI);
-    g.font = `900 ${Math.round(w * 0.26)}px system-ui, sans-serif`;
-    g.fillText(card.label, Math.round(w * 0.18), Math.round(h * 0.22));
-    g.font = `bold ${Math.round(w * 0.22)}px system-ui, sans-serif`;
-    g.fillText(card.symbol, Math.round(w * 0.18), Math.round(h * 0.38));
+    drawText3D(card.label, Math.round(w * 0.18), Math.round(h * 0.22), `900 ${Math.round(w * 0.3)}px "Arial Black", impact, sans-serif`, mainColor, shadowColor);
+    drawText3D(card.symbol, Math.round(w * 0.18), Math.round(h * 0.4), `900 ${Math.round(w * 0.25)}px "Arial Black", sans-serif`, mainColor, shadowColor);
     g.restore();
   }
 
-  // 5. Center Artwork / Court Card Graphic
+  // 5. Center Artwork
   const cx = x + w * 0.62;
   const cy = y + h * 0.6;
   const isCourt = card.label === 'K' || card.label === 'Q' || card.label === 'J' || card.label === 'A';
 
   if (isCourt) {
-    // Elegant Inner Portrait Frame
     const portraitW = Math.round(w * 0.55);
     const portraitH = Math.round(h * 0.62);
-    const px = x + w - portraitW - 3;
+    const px = x + w - portraitW - 4;
     const py = y + Math.round(h * 0.18);
 
     g.save();
-    // Inner frame with subtle luxury tint
-    const frameBg = isRed ? 'rgba(254, 226, 226, 0.45)' : 'rgba(241, 245, 249, 0.65)';
-    g.fillStyle = frameBg;
+    // Inner frame with dark border (Balatro style portrait)
+    g.fillStyle = isRed ? '#ffcccc' : '#d1d5db';
     g.beginPath();
-    g.roundRect(px, py, portraitW, portraitH, 4);
+    g.roundRect(px, py, portraitW, portraitH, 3);
     g.fill();
-
-    g.strokeStyle = isRed ? 'rgba(239, 68, 68, 0.35)' : 'rgba(100, 116, 139, 0.35)';
-    g.lineWidth = 1;
+    g.lineWidth = 2;
+    g.strokeStyle = '#222222';
     g.stroke();
 
-    // Specific Royal Crown / Character Emblem
     g.textAlign = 'center';
     if (card.label === 'K') {
-      // King 👑 with Royal Scepter
-      g.font = `${Math.round(portraitW * 0.62)}px sans-serif`;
+      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
       g.fillText('🤴', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.32)}px system-ui`;
-      g.fillStyle = '#b45309';
-      g.fillText('👑', px + portraitW / 2, py + portraitH * 0.24);
-      g.font = `${Math.round(portraitW * 0.38)}px system-ui`;
-      g.fillStyle = mainColor;
-      g.fillText(card.symbol, px + portraitW / 2, py + portraitH * 0.92);
+      g.font = `bold ${Math.round(portraitW * 0.4)}px system-ui`;
+      g.fillText('👑', px + portraitW / 2, py + portraitH * 0.28);
     } else if (card.label === 'Q') {
-      // Queen 👸 with Tiara
-      g.font = `${Math.round(portraitW * 0.62)}px sans-serif`;
+      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
       g.fillText('👸', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.32)}px system-ui`;
-      g.fillStyle = '#be185d';
-      g.fillText('✨', px + portraitW / 2, py + portraitH * 0.24);
-      g.font = `${Math.round(portraitW * 0.38)}px system-ui`;
-      g.fillStyle = mainColor;
-      g.fillText(card.symbol, px + portraitW / 2, py + portraitH * 0.92);
+      g.font = `bold ${Math.round(portraitW * 0.4)}px system-ui`;
+      g.fillText('✨', px + portraitW / 2, py + portraitH * 0.28);
     } else if (card.label === 'J') {
-      // Jack 👱 with Sword
-      g.font = `${Math.round(portraitW * 0.62)}px sans-serif`;
+      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
       g.fillText('💂', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.28)}px system-ui`;
-      g.fillStyle = '#0284c7';
-      g.fillText('⚔️', px + portraitW / 2, py + portraitH * 0.24);
-      g.font = `${Math.round(portraitW * 0.38)}px system-ui`;
-      g.fillStyle = mainColor;
-      g.fillText(card.symbol, px + portraitW / 2, py + portraitH * 0.92);
+      g.font = `bold ${Math.round(portraitW * 0.35)}px system-ui`;
+      g.fillText('⚔️', px + portraitW / 2, py + portraitH * 0.28);
     } else if (card.label === 'A') {
-      // Ace: Giant Grand Suit with Gold Shimmer Ring
-      g.font = `${Math.round(portraitW * 0.82)}px system-ui, sans-serif`;
-      g.fillStyle = mainColor;
-      g.fillText(card.symbol, px + portraitW / 2, py + portraitH * 0.7);
+      // Giant Ace
+      drawText3D(card.symbol, px + portraitW / 2, py + portraitH * 0.75, `900 ${Math.round(portraitW * 0.95)}px sans-serif`, mainColor, shadowColor);
     }
     g.restore();
 
   } else {
-    // Number Cards: Clean, bold center suit display
-    g.textAlign = 'center';
-    g.fillStyle = mainColor;
-    const centerSize = Math.max(16, Math.round(w * 0.52));
-    g.font = `${centerSize}px system-ui, sans-serif`;
-    g.fillText(card.symbol, cx, cy + Math.round(centerSize * 0.32));
+    // Number Cards: Huge bold center suit
+    const centerSize = Math.max(18, Math.round(w * 0.6));
+    drawText3D(card.symbol, cx, cy + Math.round(centerSize * 0.35), `900 ${centerSize}px sans-serif`, mainColor, shadowColor);
   }
 
   g.restore();

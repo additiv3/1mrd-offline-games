@@ -222,7 +222,7 @@ class PongDuellGame {
 
   frame = time => {
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.033, (time - this.last) / 1000);
+    const dt = Math.min(0.033, Math.max(0, (time - this.last) / 1000));
     this.last = time;
 
     this.update(dt);
@@ -386,19 +386,32 @@ class PongDuellGame {
     const { g, width, height } = this;
     g.setTransform(this.scale, 0, 0, this.scale, 0, 0);
 
-    // Dark sleek court
-    g.fillStyle = '#0b0f19';
+    // Dark sleek court with a subtle grid
+    g.fillStyle = '#05070a';
     g.fillRect(0, 0, width, height);
+    
+    // Grid pattern
+    g.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    g.lineWidth = 1;
+    for (let x = 0; x < width; x += 40) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, height); g.stroke();
+    }
+    for (let y = 0; y < height; y += 40) {
+      g.beginPath(); g.moveTo(0, y); g.lineTo(width, y); g.stroke();
+    }
 
     // Court border glow
-    g.strokeStyle = 'rgba(255,255,255,0.12)';
+    g.shadowColor = '#4c55ff';
+    g.shadowBlur = 10;
+    g.strokeStyle = 'rgba(76, 85, 255, 0.4)';
     g.lineWidth = 4;
     g.strokeRect(4, 4, width - 8, height - 8);
+    g.shadowBlur = 0;
 
-    // Center dividing net line
-    g.setLineDash([8, 8]);
-    g.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    g.lineWidth = 2;
+    // Center dividing net line (laser style)
+    g.setLineDash([12, 12]);
+    g.strokeStyle = 'rgba(76, 85, 255, 0.3)';
+    g.lineWidth = 3;
     g.beginPath();
     g.moveTo(0, height / 2);
     g.lineTo(width, height / 2);
@@ -407,77 +420,88 @@ class PongDuellGame {
 
     // Scores
     g.textAlign = 'center';
-    g.font = '900 48px ui-rounded, system-ui, sans-serif';
+    g.font = '900 64px ui-rounded, system-ui, sans-serif';
 
     // Top score (Player 2 / AI)
-    g.fillStyle = 'rgba(255, 45, 117, 0.4)';
-    g.fillText(String(this.p2Score), width / 2, height / 2 - 40);
+    g.fillStyle = 'rgba(255, 20, 100, 0.15)';
+    g.fillText(String(this.p2Score), width / 2, height / 2 - 60);
 
     // Bottom score (Player 1)
-    g.fillStyle = 'rgba(0, 229, 255, 0.4)';
-    g.fillText(String(this.p1Score), width / 2, height / 2 + 75);
+    g.fillStyle = 'rgba(0, 255, 200, 0.15)';
+    g.fillText(String(this.p1Score), width / 2, height / 2 + 105);
 
     // Player labels
-    g.font = '700 13px ui-rounded, system-ui, sans-serif';
+    g.font = '800 14px ui-rounded, system-ui, sans-serif';
     if (this.is2Player) {
       g.save();
       g.translate(width / 2, 16);
       g.rotate(Math.PI);
-      g.fillStyle = '#ff2d75';
-      g.fillText('Spieler 2', 0, 0);
+      g.fillStyle = '#ff1464';
+      g.fillText('PLAYER 2', 0, 0);
       g.restore();
-      g.fillStyle = '#00e5ff';
-      g.fillText('Spieler 1', width / 2, height - 12);
+      g.fillStyle = '#00ffc8';
+      g.fillText('PLAYER 1', width / 2, height - 12);
     } else {
-      g.fillStyle = 'rgba(255, 45, 117, 0.7)';
-      g.fillText(`Bot (${this.difficulty})`, width / 2, 18);
-      g.fillStyle = 'rgba(0, 229, 255, 0.7)';
-      g.fillText('Du', width / 2, height - 12);
+      g.fillStyle = 'rgba(255, 20, 100, 0.9)';
+      g.fillText(`CPU [${this.difficulty.toUpperCase()}]`, width / 2, 22);
+      g.fillStyle = 'rgba(0, 255, 200, 0.9)';
+      g.fillText('PLAYER', width / 2, height - 14);
     }
 
-    // Ball Trail
+    // Ball Trail (Neon Gradient)
     for (let i = 0; i < this.trail.length; i++) {
       const t = this.trail[i];
       const frac = (i + 1) / this.trail.length;
-      g.fillStyle = `rgba(255, 255, 255, ${frac * 0.35})`;
+      g.fillStyle = `rgba(0, 255, 200, ${frac * 0.4})`;
+      if (this.ballVy > 0) g.fillStyle = `rgba(255, 20, 100, ${frac * 0.4})`; // Trail color depends on direction
       g.beginPath();
-      g.arc(t.x, t.y, this.ballR * frac * 0.8, 0, Math.PI * 2);
+      g.arc(t.x, t.y, this.ballR * frac * 0.9, 0, Math.PI * 2);
       g.fill();
     }
 
     // Ball
     g.fillStyle = '#ffffff';
-    g.shadowColor = '#00e5ff';
-    g.shadowBlur = 10;
+    g.shadowColor = this.ballVy > 0 ? '#ff1464' : '#00ffc8';
+    g.shadowBlur = 15;
     g.beginPath();
     g.arc(this.ballX, this.ballY, this.ballR, 0, Math.PI * 2);
     g.fill();
     g.shadowBlur = 0;
 
+    // Paddle function
+    const drawPaddle = (x, y, color) => {
+      g.fillStyle = '#ffffff';
+      g.shadowColor = color;
+      g.shadowBlur = 18;
+      g.beginPath();
+      g.roundRect(x, y, this.paddleW, this.paddleH, 8);
+      g.fill();
+      // inner core
+      g.shadowBlur = 0;
+      g.fillStyle = color;
+      g.beginPath();
+      g.roundRect(x + 2, y + 2, this.paddleW - 4, this.paddleH - 4, 6);
+      g.fill();
+    };
+
     // Paddle 1 (Bottom - Cyan)
-    g.fillStyle = '#00e5ff';
-    g.shadowColor = '#00e5ff';
-    g.shadowBlur = 12;
-    g.beginPath();
-    g.roundRect(this.p1X, this.p1Y, this.paddleW, this.paddleH, 8);
-    g.fill();
+    drawPaddle(this.p1X, this.p1Y, '#00ffc8');
 
     // Paddle 2 (Top - Pink)
-    g.fillStyle = '#ff2d75';
-    g.shadowColor = '#ff2d75';
-    g.shadowBlur = 12;
-    g.beginPath();
-    g.roundRect(this.p2X, this.p2Y, this.paddleW, this.paddleH, 8);
-    g.fill();
-    g.shadowBlur = 0;
+    drawPaddle(this.p2X, this.p2Y, '#ff1464');
 
     // Particles
+    g.globalCompositeOperation = 'screen';
     for (const p of this.particles) {
       g.fillStyle = p.color;
+      g.shadowColor = p.color;
+      g.shadowBlur = 8;
       g.beginPath();
       g.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       g.fill();
+      g.shadowBlur = 0;
     }
+    g.globalCompositeOperation = 'source-over';
 
     // Game Over Overlay
     if (this.gameOver) {

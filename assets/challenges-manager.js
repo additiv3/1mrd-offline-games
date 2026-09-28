@@ -101,7 +101,7 @@ export const INITIAL_CHALLENGES = [
     category: 'arcade',
     icon: '🏓',
     title: 'Tischtennis-Profi',
-    desc: 'Gewinne 2 Runden im Pong Duell',
+    desc: 'Gewinne 2 Runden in Hyper Pong',
     target: 2,
     reward: 40,
     stamps: 1
@@ -280,12 +280,10 @@ export function saveChallengesState(state) {
 export function addCoinsToWallet(amount) {
   try {
     const raw = localStorage.getItem(PROGRESS_KEY);
-    if (raw) {
-      const prog = JSON.parse(raw);
-      prog.coins = (prog.coins || 0) + amount;
-      localStorage.setItem(PROGRESS_KEY, JSON.stringify(prog));
-      window.dispatchEvent(new CustomEvent('coins-updated', { detail: prog.coins }));
-    }
+    const prog = raw ? JSON.parse(raw) : { coins: 0, unlocked: [] };
+    prog.coins = (prog.coins || 0) + amount;
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(prog));
+    window.dispatchEvent(new CustomEvent('coins-updated', { detail: prog.coins }));
   } catch (e) {
     console.warn('Could not add coins to wallet', e);
   }

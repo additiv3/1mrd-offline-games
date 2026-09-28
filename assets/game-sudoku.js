@@ -425,6 +425,7 @@ class SudokuGame {
       </button>
     `;
 
+    const numPad = document.createElement('div');
     numPad.className = 'grid grid-cols-9 gap-1.5 pb-2 pt-1';
     for (let n = 1; n <= 9; n++) {
       const btn = document.createElement('button');

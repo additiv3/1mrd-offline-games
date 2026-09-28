@@ -1,271 +1,443 @@
-/* 1 Milliarde Offline Games – Sandfall (Arcade & Sand-Physik) */
+/* 1 Milliarde Offline Games – Sandtrix (Tetris + Sand Physics) */
 
-class SoundFX {
-  ctx = null;
-  init() {
-    if (!this.ctx && typeof window !== 'undefined') {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) this.ctx = new AC();
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-  }
-  tick() {
-    try {
-      this.init();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300 + Math.random() * 200, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
-    } catch (e) {}
-  }
-  goal() {
-    try {
-      this.init();
-      if (!this.ctx) return;
-      const chords = [523.25, 659.25, 783.99, 1046.5];
-      chords.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
-        gain.gain.setValueAtTime(0.08, this.ctx.currentTime + idx * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.35);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + idx * 0.08);
-        osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
-      });
-    } catch (e) {}
-  }
-}
-
-const sfx = new SoundFX();
-
-const SAND_COLORS = [
-  { id: 1, name: 'Gold', hex: '#ffd700', rgb: [255, 215, 0] },
-  { id: 2, name: 'Cyan', hex: '#00e5ff', rgb: [0, 229, 255] },
-  { id: 3, name: 'Pink', hex: '#ff2d75', rgb: [255, 45, 117] },
-  { id: 4, name: 'Lime', hex: '#10b981', rgb: [16, 185, 129] }
+const SHAPES = [
+  // I
+  [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
+  // J
+  [[1,0,0], [1,1,1], [0,0,0]],
+  // L
+  [[0,0,1], [1,1,1], [0,0,0]],
+  // O
+  [[1,1], [1,1]],
+  // S
+  [[0,1,1], [1,1,0], [0,0,0]],
+  // T
+  [[0,1,0], [1,1,1], [0,0,0]],
+  // Z
+  [[1,1,0], [0,1,1], [0,0,0]]
 ];
 
-export class SandfallGame {
-  container;
-  ctx;
-  canvas = document.createElement('canvas');
-  g;
-  observer;
-  width = 360;
-  height = 640;
-  scale = 1;
-  raf = 0;
-  last = 0;
-  paused = false;
+const COLORS = [
+  '#fdfdfd', // placeholder
+  '#00e5ff', // cyan (I)
+  '#3b82f6', // blue (J)
+  '#f59e0b', // orange (L)
+  '#eab308', // yellow (O)
+  '#10b981', // green (S)
+  '#a855f7', // purple (T)
+  '#ef4444'  // red (Z)
+];
 
-  // Grid simulation
-  cols = 90;
-  rows = 150;
-  grid; // Uint8Array: 0 = empty, 1..4 = sand colors, 255 = solid wall
-  cellW = 4;
-  cellH = 4;
+function playTone(freq, type = 'sine', duration = 0.1, gainLevel = 0.1) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(gainLevel, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch {}
+}
 
-  // Gameplay
-  mode = 'arcade'; // 'arcade' or 'zen'
-  score = 0;
-  timer = 60;
-  bins = []; // targets at the bottom
-  spouts = []; // emitters at the top
-  ramps = []; // player-drawn or rotatable barriers
-  activeRamp = null;
-  selectedColor = 1;
-  isPointerDown = false;
-  pointerPos = { x: 0, y: 0 };
-  particles = [];
-  reportTimer;
-  gameFinished = false;
-
+export class SandtrixGame {
   constructor(container, ctx) {
     this.container = container;
     this.ctx = ctx;
+    this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'display:block;width:100%;height:100%;touch-action:none;';
     container.appendChild(this.canvas);
-
+    
     const g = this.canvas.getContext('2d');
-    if (!g) throw new Error('Canvas 2D nicht unterstützt');
+    if (!g) throw new Error('Canvas nicht unterstützt');
     this.g = g;
-
+    
+    // Board resolution (Tetris is 10x20 blocks)
+    // We make each block 4x4 sand pixels -> 40x80 sand pixels
+    this.cols = 40;
+    this.rows = 80;
+    this.blockSize = 4; // 1 Tetris block = 4x4 sand pixels
+    
     this.grid = new Uint8Array(this.cols * this.rows);
-    this.initLevel();
-
+    this.width = 360;
+    this.height = 640;
+    this.scale = 1;
+    this.raf = 0;
+    
+    this.last = 0;
+    this.fallTimer = 0;
+    this.fallInterval = 0.5; // Seconds per block drop
+    
+    this.score = 0;
+    this.gameOver = false;
+    this.paused = false;
+    
+    this.activePiece = null;
+    
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(container);
     this.resize();
-
-    this.canvas.addEventListener('pointerdown', this.onPointerDown);
-    window.addEventListener('pointermove', this.onPointerMove);
-    window.addEventListener('pointerup', this.onPointerUp);
-    this.start();
+    
+    // Controls
+    window.addEventListener('keydown', this.onKey);
+    
+    // Touch controls
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+    this.lastTouchX = 0;
+    this.canvas.addEventListener('touchstart', this.onTouchStart, {passive: false});
+    this.canvas.addEventListener('touchmove', this.onTouchMove, {passive: false});
+    this.canvas.addEventListener('touchend', this.onTouchEnd, {passive: false});
+    
+    this.reset();
   }
-
-  initLevel() {
+  
+  reset() {
     this.grid.fill(0);
     this.score = 0;
-    this.timer = 50;
-    this.gameFinished = false;
-    this.particles = [];
-
-    // Setup 3 bins at bottom: cols 8..30 (color 1), 35..55 (color 2), 60..82 (color 3)
-    const binDefs = [
-      { colorId: 1, cStart: 8, cEnd: 30, filled: 0, target: 120 },
-      { colorId: 2, cStart: 35, cEnd: 55, filled: 0, target: 120 },
-      { colorId: 3, cStart: 60, cEnd: 82, filled: 0, target: 120 }
-    ];
-    this.bins = binDefs;
-
-    // Draw container walls in grid
-    for (let b of this.bins) {
-      for (let r = this.rows - 32; r < this.rows - 5; r++) {
-        this.setGrid(b.cStart - 1, r, 255);
-        this.setGrid(b.cEnd + 1, r, 255);
-      }
-      for (let c = b.cStart - 1; c <= b.cEnd + 1; c++) {
-        this.setGrid(c, this.rows - 5, 255);
-      }
-    }
-
-    // Spouts at top
-    this.spouts = [
-      { c: 22, colorId: 1, rate: 0.8 },
-      { c: 45, colorId: 2, rate: 0.8 },
-      { c: 68, colorId: 3, rate: 0.8 }
-    ];
-
-    // Pre-placed obstacles
-    this.ramps = [
-      { x1: 15, y1: 45, x2: 38, y2: 60, rotatable: true },
-      { x1: 75, y1: 45, x2: 52, y2: 60, rotatable: true },
-      { x1: 30, y1: 85, x2: 60, y2: 95, rotatable: true }
-    ];
-    this.bakeRamps();
+    this.gameOver = false;
+    this.fallInterval = 0.5;
+    this.spawnPiece();
+    this.start();
   }
-
-  bakeRamps() {
-    // Clear old ramps (except bins)
-    for (let r = 0; r < this.rows - 35; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        if (this.getGrid(c, r) === 255) {
-          this.setGrid(c, r, 0);
-        }
-      }
-    }
-
-    // Draw lines for ramps
-    for (let ramp of this.ramps) {
-      this.drawLineGrid(ramp.x1, ramp.y1, ramp.x2, ramp.y2, 255);
+  
+  spawnPiece() {
+    const type = Math.floor(Math.random() * 7);
+    const shape = SHAPES[type];
+    
+    this.activePiece = {
+      shape: shape.map(row => [...row]),
+      color: type + 1,
+      x: Math.floor((10 - shape[0].length) / 2) * this.blockSize,
+      y: 0
+    };
+    
+    if (this.checkCollision(this.activePiece.x, this.activePiece.y, this.activePiece.shape)) {
+      this.finishGame();
     }
   }
-
-  drawLineGrid(x0, y0, x1, y1, val) {
-    let dx = Math.abs(x1 - x0);
-    let dy = Math.abs(y1 - y0);
-    let sx = x0 < x1 ? 1 : -1;
-    let sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-    let cx = x0;
-    let cy = y0;
-
-    while (true) {
-      for (let ox = -1; ox <= 1; ox++) {
-        for (let oy = -1; oy <= 1; oy++) {
-          this.setGrid(cx + ox, cy + oy, val);
-        }
-      }
-      if (cx === x1 && cy === y1) break;
-      let e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; cx += sx; }
-      if (e2 < dx) { err += dx; cy += sy; }
-    }
-  }
-
-  getGrid(c, r) {
-    if (c < 0 || c >= this.cols || r < 0 || r >= this.rows) return 255;
-    return this.grid[r * this.cols + c];
-  }
-
-  setGrid(c, r, val) {
-    if (c >= 0 && c < this.cols && r >= 0 && r < this.rows) {
-      this.grid[r * this.cols + c] = val;
-    }
-  }
-
-  onPointerDown = (e) => {
-    this.isPointerDown = true;
-    sfx.init();
-    this.updatePointer(e);
-
-    // Check if clicked near a ramp to rotate or flip it
-    const gx = Math.round(this.pointerPos.x / this.cellW);
-    const gy = Math.round(this.pointerPos.y / this.cellH);
-
-    // Check if clicked on interactive ramp
-    for (let ramp of this.ramps) {
-      const mx = (ramp.x1 + ramp.x2) / 2;
-      const my = (ramp.y1 + ramp.y2) / 2;
-      if (Math.hypot(gx - mx, gy - my) < 14) {
-        // Flip ramp angle!
-        const dx = ramp.x2 - ramp.x1;
-        const dy = ramp.y2 - ramp.y1;
-        ramp.x1 = Math.round(mx - dy * 0.7);
-        ramp.y1 = Math.round(my + dx * 0.7);
-        ramp.x2 = Math.round(mx + dy * 0.7);
-        ramp.y2 = Math.round(my - dx * 0.7);
-        this.bakeRamps();
-        sfx.tick();
-        return;
-      }
-    }
-
-    // Check if clicked bottom color picker or zen mode
-    if (this.pointerPos.y < 50 && this.pointerPos.x > this.width - 90) {
-      this.initLevel();
-      return;
-    }
-  };
-
-  onPointerMove = (e) => {
-    if (this.isPointerDown) {
-      this.updatePointer(e);
-      // Spawn sand under finger!
-      const gx = Math.round(this.pointerPos.x / this.cellW);
-      const gy = Math.round(this.pointerPos.y / this.cellH);
-      for (let ox = -2; ox <= 2; ox++) {
-        for (let oy = -2; oy <= 2; oy++) {
-          if (Math.random() < 0.4 && this.getGrid(gx + ox, gy + oy) === 0) {
-            this.setGrid(gx + ox, gy + oy, this.selectedColor);
+  
+  // Checks collision in sand pixels
+  checkCollision(x, y, shape) {
+    for (let r = 0; r < shape.length; r++) {
+      for (let c = 0; c < shape[r].length; c++) {
+        if (shape[r][c]) {
+          // Check the 4x4 block
+          for (let br = 0; br < this.blockSize; br++) {
+            for (let bc = 0; bc < this.blockSize; bc++) {
+              const px = x + c * this.blockSize + bc;
+              const py = y + r * this.blockSize + br;
+              
+              if (px < 0 || px >= this.cols || py >= this.rows) return true;
+              if (py >= 0 && this.grid[py * this.cols + px] > 0) return true;
+            }
           }
         }
       }
     }
-  };
-
-  onPointerUp = () => {
-    this.isPointerDown = false;
-  };
-
-  updatePointer(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    this.pointerPos.x = (e.clientX - rect.left) / this.scale;
-    this.pointerPos.y = (e.clientY - rect.top) / this.scale;
+    return false;
   }
-
+  
+  shatterPiece() {
+    playTone(200, 'sawtooth', 0.1, 0.05);
+    const p = this.activePiece;
+    for (let r = 0; r < p.shape.length; r++) {
+      for (let c = 0; c < p.shape[r].length; c++) {
+        if (p.shape[r][c]) {
+          for (let br = 0; br < this.blockSize; br++) {
+            for (let bc = 0; bc < this.blockSize; bc++) {
+              const px = p.x + c * this.blockSize + bc;
+              const py = p.y + r * this.blockSize + br;
+              if (py >= 0 && py < this.rows && px >= 0 && px < this.cols) {
+                this.grid[py * this.cols + px] = p.color;
+              }
+            }
+          }
+        }
+      }
+    }
+    this.spawnPiece();
+  }
+  
+  rotatePiece() {
+    if (!this.activePiece) return;
+    const p = this.activePiece;
+    const newShape = [];
+    for (let c = 0; c < p.shape[0].length; c++) {
+      const newRow = [];
+      for (let r = p.shape.length - 1; r >= 0; r--) {
+        newRow.push(p.shape[r][c]);
+      }
+      newShape.push(newRow);
+    }
+    
+    // Wall kick simple
+    let kickedX = p.x;
+    if (this.checkCollision(kickedX, p.y, newShape)) kickedX -= this.blockSize;
+    if (this.checkCollision(kickedX, p.y, newShape)) kickedX += this.blockSize * 2;
+    if (this.checkCollision(kickedX, p.y, newShape)) return; // failed
+    
+    p.shape = newShape;
+    p.x = kickedX;
+    playTone(600, 'sine', 0.05, 0.05);
+  }
+  
+  onKey = (e) => {
+    if (this.gameOver || this.paused || !this.activePiece) return;
+    
+    if (e.code === 'ArrowLeft') {
+      if (!this.checkCollision(this.activePiece.x - this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x -= this.blockSize;
+      }
+    } else if (e.code === 'ArrowRight') {
+      if (!this.checkCollision(this.activePiece.x + this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x += this.blockSize;
+      }
+    } else if (e.code === 'ArrowUp') {
+      this.rotatePiece();
+    } else if (e.code === 'ArrowDown') {
+      this.fallTimer = this.fallInterval; // Force drop step
+    }
+  };
+  
+  onTouchStart = (e) => {
+    e.preventDefault();
+    if (this.gameOver) {
+      this.reset();
+      return;
+    }
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+    this.lastTouchX = this.touchStartX;
+  };
+  
+  onTouchMove = (e) => {
+    e.preventDefault();
+    if (this.gameOver || this.paused || !this.activePiece) return;
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    
+    // Threshold for moving left/right (scale with screen)
+    const threshold = (this.width / 10) * this.scale;
+    
+    if (x - this.lastTouchX > threshold) {
+      if (!this.checkCollision(this.activePiece.x + this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x += this.blockSize;
+        this.lastTouchX = x;
+      }
+    } else if (this.lastTouchX - x > threshold) {
+      if (!this.checkCollision(this.activePiece.x - this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x -= this.blockSize;
+        this.lastTouchX = x;
+      }
+    }
+    
+    // Fast drop
+    if (y - this.touchStartY > threshold * 1.5) {
+      this.fallTimer = this.fallInterval;
+      this.touchStartY = y;
+    }
+  };
+  
+  onTouchEnd = (e) => {
+    e.preventDefault();
+    if (this.gameOver || this.paused || !this.activePiece) return;
+    // Tap to rotate if barely moved
+    const dx = Math.abs(e.changedTouches[0].clientX - this.touchStartX);
+    const dy = Math.abs(e.changedTouches[0].clientY - this.touchStartY);
+    if (dx < 15 && dy < 15) {
+      this.rotatePiece();
+    }
+  };
+  
+  update(dt) {
+    if (this.gameOver || this.paused) return;
+    
+    // Block Falling
+    if (this.activePiece) {
+      this.fallTimer += dt;
+      if (this.fallTimer >= this.fallInterval) {
+        this.fallTimer = 0;
+        if (!this.checkCollision(this.activePiece.x, this.activePiece.y + 1, this.activePiece.shape)) {
+          this.activePiece.y += 1; // Falls 1 pixel at a time for smoothness
+        } else {
+          this.shatterPiece();
+        }
+      }
+    }
+    
+    // Sand Physics (Cellular Automata)
+    // Run multiple steps per frame to make sand fall fast
+    const steps = 3;
+    for (let s = 0; s < steps; s++) {
+      for (let r = this.rows - 2; r >= 0; r--) {
+        const leftToRight = Math.random() < 0.5;
+        const startC = leftToRight ? 0 : this.cols - 1;
+        const endC = leftToRight ? this.cols : -1;
+        const stepC = leftToRight ? 1 : -1;
+        
+        for (let c = startC; c !== endC; c += stepC) {
+          const val = this.grid[r * this.cols + c];
+          if (val > 0) {
+            const down = this.grid[(r + 1) * this.cols + c];
+            if (down === 0) {
+              this.grid[(r + 1) * this.cols + c] = val;
+              this.grid[r * this.cols + c] = 0;
+            } else {
+              const dir = Math.random() < 0.5 ? 1 : -1;
+              const d1Empty = c + dir >= 0 && c + dir < this.cols && this.grid[(r + 1) * this.cols + c + dir] === 0;
+              const d2Empty = c - dir >= 0 && c - dir < this.cols && this.grid[(r + 1) * this.cols + c - dir] === 0;
+              
+              if (d1Empty) {
+                this.grid[(r + 1) * this.cols + c + dir] = val;
+                this.grid[r * this.cols + c] = 0;
+              } else if (d2Empty) {
+                this.grid[(r + 1) * this.cols + c - dir] = val;
+                this.grid[r * this.cols + c] = 0;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Line Clearing (Horizontal line full of sand)
+    let linesCleared = 0;
+    for (let r = this.rows - 1; r >= 0; r--) {
+      let full = true;
+      for (let c = 0; c < this.cols; c++) {
+        if (this.grid[r * this.cols + c] === 0) {
+          full = false;
+          break;
+        }
+      }
+      
+      if (full) {
+        linesCleared++;
+        // Shift everything above down
+        for (let yr = r; yr > 0; yr--) {
+          for (let c = 0; c < this.cols; c++) {
+            this.grid[yr * this.cols + c] = this.grid[(yr - 1) * this.cols + c];
+          }
+        }
+        // Top row empty
+        for (let c = 0; c < this.cols; c++) {
+          this.grid[c] = 0;
+        }
+        r++; // Recheck this row index
+      }
+    }
+    
+    if (linesCleared > 0) {
+      const points = [0, 100, 300, 500, 800][linesCleared] || 1000;
+      this.score += points;
+      this.fallInterval = Math.max(0.1, 0.5 - (this.score / 10000));
+      playTone(523 + linesCleared * 100, 'sine', 0.3, 0.2);
+    }
+  }
+  
+  finishGame() {
+    this.gameOver = true;
+    setTimeout(() => {
+      this.ctx.reportResult({
+        outcome: 'completed',
+        score: this.score,
+        headline: `Game Over! ${this.score} Pkt`
+      });
+    }, 1000);
+  }
+  
+  draw() {
+    const { g, width, height } = this;
+    g.save();
+    g.scale(this.scale, this.scale);
+    
+    // Background
+    g.fillStyle = '#0f172a';
+    g.fillRect(0, 0, width, height);
+    
+    // Grid Lines (subtle)
+    g.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    g.lineWidth = 1;
+    
+    // Calculate rendering cell sizes
+    // We want the 40x80 grid to fit in an area, say 240x480 (centered)
+    const renderW = 320;
+    const renderH = 640;
+    const cellW = renderW / this.cols;
+    const cellH = renderH / this.rows;
+    const offX = (width - renderW) / 2;
+    const offY = height - renderH;
+    
+    // Draw play area background
+    g.fillStyle = '#000000';
+    g.fillRect(offX, offY, renderW, renderH);
+    g.strokeRect(offX, offY, renderW, renderH);
+    
+    // Draw Sand
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const val = this.grid[r * this.cols + c];
+        if (val > 0) {
+          g.fillStyle = COLORS[val];
+          g.fillRect(offX + c * cellW, offY + r * cellH, cellW + 0.5, cellH + 0.5);
+        }
+      }
+    }
+    
+    // Draw Active Piece
+    if (this.activePiece) {
+      g.fillStyle = COLORS[this.activePiece.color];
+      const p = this.activePiece;
+      for (let r = 0; r < p.shape.length; r++) {
+        for (let c = 0; c < p.shape[r].length; c++) {
+          if (p.shape[r][c]) {
+            g.fillRect(
+              offX + (p.x + c * this.blockSize) * cellW,
+              offY + (p.y + r * this.blockSize) * cellH,
+              this.blockSize * cellW,
+              this.blockSize * cellH
+            );
+            // Block border to make it look solid
+            g.strokeStyle = 'rgba(255,255,255,0.4)';
+            g.strokeRect(
+              offX + (p.x + c * this.blockSize) * cellW,
+              offY + (p.y + r * this.blockSize) * cellH,
+              this.blockSize * cellW,
+              this.blockSize * cellH
+            );
+          }
+        }
+      }
+    }
+    
+    // UI
+    g.fillStyle = '#ffffff';
+    g.font = '900 24px system-ui';
+    g.textAlign = 'left';
+    g.fillText(`Score: ${this.score}`, 20, 30);
+    
+    if (this.gameOver) {
+      g.fillStyle = 'rgba(0,0,0,0.7)';
+      g.fillRect(0, 0, width, height);
+      g.fillStyle = '#ff2d75';
+      g.textAlign = 'center';
+      g.font = '900 42px system-ui';
+      g.fillText('GAME OVER', width / 2, height / 2);
+      g.fillStyle = '#ffffff';
+      g.font = 'bold 20px system-ui';
+      g.fillText('Tippe für Neustart', width / 2, height / 2 + 40);
+    }
+    
+    g.restore();
+  }
+  
   resize() {
     const rect = this.container.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -273,228 +445,43 @@ export class SandfallGame {
     this.canvas.height = Math.max(1, Math.round(rect.height * dpr));
     this.scale = this.canvas.height / 640;
     this.width = this.canvas.width / this.scale;
-    this.cellW = this.width / this.cols;
-    this.cellH = 640 / this.rows;
   }
-
+  
   start() {
     if (!this.raf) {
       this.last = performance.now();
       this.raf = requestAnimationFrame(this.frame);
     }
   }
-
+  
   stop() {
     cancelAnimationFrame(this.raf);
     this.raf = 0;
   }
-
+  
   frame = (time) => {
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.05, (time - this.last) / 1000);
+    const dt = Math.min(0.05, Math.max(0, (time - this.last) / 1000));
     this.last = time;
-
-    if (!this.paused && !this.gameFinished) {
-      this.update(dt);
-    }
+    this.update(dt);
     this.draw();
   };
-
-  update(dt) {
-    this.timer = Math.max(0, this.timer - dt);
-
-    // Spouts emit sand
-    for (let spout of this.spouts) {
-      if (Math.random() < spout.rate) {
-        const spread = Math.floor((Math.random() - 0.5) * 4);
-        const c = spout.c + spread;
-        if (this.getGrid(c, 8) === 0) {
-          this.setGrid(c, 8, spout.colorId);
-        }
-      }
-    }
-
-    // Step cellular automaton simulation bottom-to-top
-    for (let r = this.rows - 6; r >= 0; r--) {
-      // Alternate scan order left/right to prevent bias
-      const leftToRight = Math.random() < 0.5;
-      const startC = leftToRight ? 0 : this.cols - 1;
-      const endC = leftToRight ? this.cols : -1;
-      const stepC = leftToRight ? 1 : -1;
-
-      for (let c = startC; c !== endC; c += stepC) {
-        const cell = this.getGrid(c, r);
-        if (cell > 0 && cell < 255) {
-          // Check down
-          const down = this.getGrid(c, r + 1);
-          if (down === 0) {
-            this.setGrid(c, r + 1, cell);
-            this.setGrid(c, r, 0);
-          } else {
-            // Check diagonals
-            const dir = Math.random() < 0.5 ? 1 : -1;
-            const d1 = this.getGrid(c + dir, r + 1);
-            const d2 = this.getGrid(c - dir, r + 1);
-            if (d1 === 0) {
-              this.setGrid(c + dir, r + 1, cell);
-              this.setGrid(c, r, 0);
-            } else if (d2 === 0) {
-              this.setGrid(c - dir, r + 1, cell);
-              this.setGrid(c, r, 0);
-            }
-          }
-        }
-      }
-    }
-
-    // Check bins filling
-    let allBinsFull = true;
-    for (let b of this.bins) {
-      let count = 0;
-      for (let r = this.rows - 30; r < this.rows - 6; r++) {
-        for (let c = b.cStart; c <= b.cEnd; c++) {
-          const val = this.getGrid(c, r);
-          if (val === b.colorId) count++;
-          else if (val > 0 && val < 255) count -= 0.5; // wrong color penalty
-        }
-      }
-      b.filled = Math.max(0, count);
-      if (b.filled < b.target) allBinsFull = false;
-    }
-
-    this.score = Math.round(this.bins.reduce((acc, b) => acc + Math.min(b.target, b.filled), 0) * 1.5);
-
-    if (allBinsFull && !this.gameFinished) {
-      this.gameFinished = true;
-      sfx.goal();
-      const coinsEarned = 35 + Math.round(this.timer * 0.5);
-      this.reportTimer = setTimeout(() => {
-        this.ctx.reportResult({
-          outcome: 'win',
-          score: this.score,
-          coinsEarned,
-          headline: 'Alle Gläser gefüllt! 🏆'
-        });
-      }, 1000);
-    } else if (this.timer <= 0 && !this.gameFinished) {
-      this.gameFinished = true;
-      const coinsEarned = Math.max(5, Math.round(this.score / 15));
-      this.reportTimer = setTimeout(() => {
-        this.ctx.reportResult({
-          outcome: 'completed',
-          score: this.score,
-          coinsEarned,
-          headline: this.score > 200 ? 'Klasse Runde!' : 'Zeit abgelaufen'
-        });
-      }, 1000);
-    }
-  }
-
-  draw() {
-    const { g, width } = this;
-    g.save();
-    g.scale(this.scale, this.scale);
-
-    // Background gradient
-    const bg = g.createLinearGradient(0, 0, 0, 640);
-    bg.addColorStop(0, '#0a0718');
-    bg.addColorStop(1, '#1b1338');
-    g.fillStyle = bg;
-    g.fillRect(0, 0, width, 640);
-
-    // Draw grid pixels
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        const val = this.getGrid(c, r);
-        if (val > 0) {
-          if (val === 255) {
-            g.fillStyle = '#4a3f78';
-            g.fillRect(c * this.cellW, r * this.cellH, this.cellW + 0.5, this.cellH + 0.5);
-          } else {
-            const sc = SAND_COLORS[val - 1];
-            g.fillStyle = sc ? sc.hex : '#fff';
-            g.fillRect(c * this.cellW, r * this.cellH, this.cellW, this.cellH);
-          }
-        }
-      }
-    }
-
-    // Draw Bins labels & progress
-    for (let b of this.bins) {
-      const sc = SAND_COLORS[b.colorId - 1];
-      const bx = b.cStart * this.cellW;
-      const bw = (b.cEnd - b.cStart) * this.cellW;
-      const pct = Math.min(1, b.filled / b.target);
-
-      // Glass highlight
-      g.strokeStyle = sc.hex;
-      g.lineWidth = 2;
-      g.strokeRect(bx, (this.rows - 32) * this.cellH, bw, 26 * this.cellH);
-
-      // Label below
-      g.fillStyle = '#fff';
-      g.font = 'bold 12px system-ui, sans-serif';
-      g.textAlign = 'center';
-      g.fillText(`${Math.round(pct * 100)}%`, bx + bw / 2, 630);
-    }
-
-    // Interactive ramps indicators
-    g.fillStyle = '#00e5ff';
-    for (let ramp of this.ramps) {
-      const mx = ((ramp.x1 + ramp.x2) / 2) * this.cellW;
-      const my = ((ramp.y1 + ramp.y2) / 2) * this.cellH;
-      g.beginPath();
-      g.arc(mx, my, 8, 0, Math.PI * 2);
-      g.fillStyle = 'rgba(0, 229, 255, 0.4)';
-      g.fill();
-      g.strokeStyle = '#00e5ff';
-      g.lineWidth = 1.5;
-      g.stroke();
-      g.fillStyle = '#fff';
-      g.font = 'bold 9px system-ui';
-      g.textAlign = 'center';
-      g.fillText('↻', mx, my + 3);
-    }
-
-    // Top HUD
-    g.fillStyle = 'rgba(255,255,255,0.95)';
-    g.font = '900 24px system-ui, sans-serif';
-    g.textAlign = 'left';
-    g.fillText(`${this.score} Pkt`, 16, 32);
-
-    g.textAlign = 'right';
-    g.font = 'bold 16px system-ui, sans-serif';
-    g.fillStyle = this.timer < 10 ? '#ff2d75' : '#00e5ff';
-    g.fillText(`⏱️ ${Math.ceil(this.timer)} s`, width - 16, 30);
-
-    // Tip
-    g.font = '11px system-ui';
-    g.fillStyle = 'rgba(255,255,255,0.55)';
-    g.textAlign = 'center';
-    g.fillText('Tippe auf ↻ zum Drehen · Ziehe den Finger für extra Sand', width / 2, 50);
-
-    g.restore();
-  }
-
+  
   pause() { this.paused = true; }
-  resume() { this.paused = false; }
-  reset() {
-    clearTimeout(this.reportTimer);
-    this.initLevel();
-  }
+  resume() { this.paused = false; this.last = performance.now(); }
   dispose() {
     this.stop();
-    clearTimeout(this.reportTimer);
     this.observer.disconnect();
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-    window.removeEventListener('pointermove', this.onPointerMove);
-    window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('keydown', this.onKey);
+    this.canvas.removeEventListener('touchstart', this.onTouchStart);
+    this.canvas.removeEventListener('touchmove', this.onTouchMove);
+    this.canvas.removeEventListener('touchend', this.onTouchEnd);
     this.canvas.remove();
   }
 }
 
 export default {
   async initialize(container, ctx) {
-    return new SandfallGame(container, ctx);
+    return new SandtrixGame(container, ctx);
   }
 };

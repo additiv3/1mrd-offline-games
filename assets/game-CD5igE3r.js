@@ -230,31 +230,17 @@ function checkRim(world, hoop, rimX, isFrontRim) {
     playSound('rim');
   }
 
-  // KEY IMPROVEMENT:
-  // When colliding against the rim/pole:
-  // 1. Shift all hoops and pickups BACKWARDS to the right by 45px!
-  // This visually pushes the entire obstacle field back to the left relative to the ball,
-  // preventing the player from being slammed or rushed forward into the next ring.
-  const pushBackAmount = isFrontRim ? 48 : 28;
-  for (const h of world.hoops) {
-    h.x += pushBackAmount;
-  }
-  for (const p of world.pickups) {
-    p.x += pushBackAmount;
-  }
-  world.distance = Math.max(0, world.distance - pushBackAmount);
-
-  // 2. Bounce the ball safely backwards and upwards!
+  // 1. Bounce the ball safely backwards and upwards!
   world.ballX = Math.max(30, rimX + (nx < 0 ? -collisionRadius : collisionRadius * 0.5));
   world.ballY = hoop.y + ny * collisionRadius;
   
-  // Clean upward recoil
-  world.vy = -Math.abs(world.vy) * 0.42 - 110;
-  world.vx = -40; // Soft backward push, zero forward slingshot!
+  // Clean upward recoil, smooth transition
+  world.vy = -Math.abs(world.vy) * 0.5 - 120;
+  world.vx = -120; // Normal backward bounce velocity
   world.squish = 0.25;
 
-  // 3. Briefly pause / slow down the scrolling for 0.3s so player has time to react
-  world.hitPause = 0.32;
+  // 2. No pause, keep it smooth
+  world.hitPause = 0;
 
   world.events.push({
     type: 'rim',

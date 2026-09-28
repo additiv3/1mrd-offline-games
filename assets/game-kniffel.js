@@ -299,8 +299,9 @@ export class KniffelGame {
       const dots = diceDots[val] || [];
 
       return `
-        <button type="button" data-die="${idx}" class="die-btn relative flex-1 aspect-square max-w-[68px] min-h-[58px] rounded-2xl bg-gradient-to-b ${isHeld ? 'from-amber-400 to-amber-500 ring-4 ring-amber-300 text-bg shadow-amber-500/50 -translate-y-2' : 'from-white via-slate-100 to-slate-200 text-slate-800 shadow-xl border-2 border-white/60'} shadow-lg flex items-center justify-center p-2.5 transition-all active:scale-95 cursor-pointer" style="transform: rotate(${angle}deg) ${isHeld ? 'translateY(-8px)' : ''}">
-          <div class="w-full h-full relative grid grid-cols-3 grid-rows-3 p-0.5">
+      return `
+        <button type="button" data-die="${idx}" class="die-btn relative flex-1 aspect-square max-w-[72px] min-h-[64px] rounded-2xl bg-gradient-to-br ${isHeld ? 'from-amber-300 via-amber-400 to-amber-500 ring-4 ring-amber-200 text-bg shadow-[0_8px_16px_rgba(245,158,11,0.6),inset_0_2px_4px_rgba(255,255,255,0.8)] -translate-y-2' : 'from-white via-slate-50 to-slate-200 text-slate-800 shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_4px_6px_rgba(255,255,255,1)] border border-slate-300/50'} flex items-center justify-center p-2 transition-all active:scale-95 cursor-pointer" style="transform: rotate(${angle}deg) ${isHeld ? 'translateY(-10px)' : ''}">
+          <div class="w-full h-full relative grid grid-cols-3 grid-rows-3 gap-[2px]">
             ${dots.map(pos => {
               let gridClass = '';
               if (pos === 'top-left') gridClass = 'col-start-1 row-start-1';
@@ -310,10 +311,10 @@ export class KniffelGame {
               if (pos === 'middle-right') gridClass = 'col-start-3 row-start-2';
               if (pos === 'bottom-left') gridClass = 'col-start-1 row-start-3';
               if (pos === 'bottom-right') gridClass = 'col-start-3 row-start-3';
-              return `<span class="w-3 h-3 rounded-full ${isHeld ? 'bg-bg' : 'bg-slate-900'} ${gridClass} justify-self-center self-center shadow-xs"></span>`;
+              return `<div class="${gridClass} flex items-center justify-center"><span class="w-[18px] h-[18px] rounded-full ${isHeld ? 'bg-amber-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]' : 'bg-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'}"></span></div>`;
             }).join('')}
           </div>
-          ${isHeld ? '<span class="absolute -top-2 rounded-full bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 shadow-md">GEHALTEN</span>' : ''}
+          ${isHeld ? '<span class="absolute -top-3 rounded-full bg-amber-900 text-amber-100 border-2 border-amber-400 text-[10px] font-black px-2 py-0.5 shadow-lg z-10 tracking-widest">HOLD</span>' : ''}
         </button>
       `;
     }).join('');
