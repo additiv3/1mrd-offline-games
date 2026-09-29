@@ -425,20 +425,24 @@ export function openChallengesModal() {
     }
 
     const modal = document.createElement('div');
-    modal.className = 'flex flex-col w-full h-full sm:max-w-lg sm:h-auto sm:max-h-[92vh] bg-surface sm:rounded-3xl border-0 sm:border border-line shadow-2xl overflow-hidden animate-[slide-up_0.2s_ease-out]';
+    modal.className = 'flex flex-col w-full h-full sm:max-w-lg sm:h-auto sm:max-h-[92vh] bg-surface sm:rounded-3xl border-0 sm:border border-line shadow-2xl overflow-hidden pt-safe pb-safe';
 
     // Header
     const header = document.createElement('div');
-    header.className = 'flex items-center justify-between p-4 border-b border-line bg-surface-raised';
+    header.className = 'flex items-center justify-between p-3.5 border-b border-line bg-surface-raised shrink-0';
     header.innerHTML = `
-      <div class="flex items-center gap-2.5">
-        <span class="text-2xl">🎫</span>
+      <button id="back-challenges-btn" type="button" class="flex items-center gap-1.5 text-ink font-bold text-xs py-1 px-2.5 rounded-full bg-surface border border-line active:scale-95 transition cursor-pointer">
+        <span class="text-xs">←</span>
+        <span>Zurück</span>
+      </button>
+      <div class="flex items-center gap-2 text-center">
+        <span class="text-xl">🎫</span>
         <div>
-          <h2 class="font-extrabold text-base leading-tight">Herausforderungen & Stempel</h2>
-          <p class="text-xs text-ink-muted">Sammle Stempel für die 250 🪙 Belohnung</p>
+          <h2 class="font-black text-sm sm:text-base leading-tight">Stempel & Missionen</h2>
+          <p class="text-[10px] text-ink-muted font-bold">6 Stempel = 250 🪙 Jackpot</p>
         </div>
       </div>
-      <button id="close-challenges-btn" type="button" class="w-8 h-8 rounded-full bg-surface grid place-items-center text-ink-muted font-bold active:scale-95 transition cursor-pointer">✕</button>
+      <button id="close-challenges-btn" type="button" class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-ink-muted hover:text-ink font-black active:scale-95 transition border border-line cursor-pointer" aria-label="Schließen">✕</button>
     `;
 
     // Tabs
@@ -457,7 +461,7 @@ export function openChallengesModal() {
 
     // Body
     const body = document.createElement('div');
-    body.className = 'flex-1 overflow-y-auto p-4 space-y-4';
+    body.className = 'flex-1 overflow-y-auto scroll-touch p-4 space-y-4';
 
     if (activeTab === 'stamps') {
       // Stamp Card View
@@ -581,6 +585,9 @@ export function openChallengesModal() {
 
     // Event listeners
     backdrop.querySelector('#close-challenges-btn')?.addEventListener('click', () => {
+      backdrop.remove();
+    });
+    backdrop.querySelector('#back-challenges-btn')?.addEventListener('click', () => {
       backdrop.remove();
     });
 

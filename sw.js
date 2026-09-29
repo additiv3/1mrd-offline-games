@@ -1,6 +1,6 @@
 /* 1 Milliarde Offline Games – Service Worker: offline spielbar, online immer die neueste Version.
    Vorlage: das Plugin "mrd-pwa" in vite.config.ts setzt Cache-Name und Vorab-Liste ein und schreibt dist/sw.js. */
-const CACHE = 'mrd-offline-games-v8.3-crash-fix';
+const CACHE = 'mrd-offline-games-v1.8.4-build2';
 const PRECACHE = [
   "./",
   "./index.html",
@@ -58,16 +58,19 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Stale-while-revalidate für assets und shell
+  // Network-first with cache fallback:
+  // When online, always fetch fresh files immediately and update cache.
+  // When offline (or network fails), immediately serve from cache.
   e.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(req);
-      const network = fetch(req).then((res) => {
-        if (res.ok) cache.put(req, res.clone());
-        return res;
-      }).catch(() => null);
-
-      return cached || network || new Response("Offline", { status: 503 });
-    })
+    fetch(req)
+      .then((networkRes) => {
+        if (networkRes && networkRes.ok) {
+          const clone = networkRes.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, clone));
+        }
+        return networkRes;
+      })
+      .catch(() => caches.match(req, { ignoreSearch: true }).then((cached) => cached || new Response("Offline", { status: 503 })))
   );
 });
+

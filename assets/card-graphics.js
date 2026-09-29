@@ -14,29 +14,27 @@ export function drawLuxuryCardFront(g, card, x, y, w, h, isSelected = false) {
   // 1. Drop Shadow & Selection Glow (Holographic if selected)
   if (isSelected) {
     g.shadowColor = '#00ffc8';
-    g.shadowBlur = 15;
+    g.shadowBlur = 14;
     g.shadowOffsetX = 0;
     g.shadowOffsetY = 0;
   } else {
-    g.shadowColor = 'rgba(0, 0, 0, 0.4)';
-    g.shadowBlur = 8;
-    g.shadowOffsetX = 2;
-    g.shadowOffsetY = 4;
+    g.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    g.shadowBlur = 6;
+    g.shadowOffsetX = 1.5;
+    g.shadowOffsetY = 3;
   }
 
-  // 2. Card Base (Vintage / Punchy)
-  const r = Math.max(5, Math.round(w * 0.12));
-  
-  // Card base gradient
+  // 2. Card Base (Balatro Cream / Vintage cardstock)
+  const r = Math.max(4, Math.round(w * 0.1));
   const baseGrad = g.createLinearGradient(x, y, x + w, y + h);
   if (isSelected) {
-    // Balatro holo effect base
-    baseGrad.addColorStop(0, '#fdfbfb');
-    baseGrad.addColorStop(0.5, '#e2d1c3');
-    baseGrad.addColorStop(1, '#fdfbfb');
+    baseGrad.addColorStop(0, '#ffffff');
+    baseGrad.addColorStop(0.5, '#f0e6d6');
+    baseGrad.addColorStop(1, '#ffffff');
   } else {
-    baseGrad.addColorStop(0, '#f4ebd8'); // Vintage paper color
-    baseGrad.addColorStop(1, '#e3d5b8');
+    baseGrad.addColorStop(0, '#faf4e6');
+    baseGrad.addColorStop(0.7, '#f3ebd4');
+    baseGrad.addColorStop(1, '#ebe0c5');
   }
   g.fillStyle = baseGrad;
 
@@ -44,121 +42,121 @@ export function drawLuxuryCardFront(g, card, x, y, w, h, isSelected = false) {
   g.roundRect(x, y, w, h, r);
   g.fill();
 
-  // Reset shadow for inner graphics
+  // Reset shadow for crisp inner graphics
   g.shadowColor = 'transparent';
   g.shadowBlur = 0;
 
-  // 3. Thick Card Border
-  g.strokeStyle = '#222222';
-  g.lineWidth = isSelected ? 3 : 2;
+  // 3. Thick Card Border (Balatro dark crisp border)
+  g.strokeStyle = '#1e1c24';
+  g.lineWidth = isSelected ? 2.5 : 1.5;
   g.stroke();
 
-  // Inner border
-  g.strokeStyle = 'rgba(255,255,255,0.7)';
+  // Inner decorative border
+  g.strokeStyle = 'rgba(215, 195, 160, 0.6)';
   g.lineWidth = 1;
   g.beginPath();
-  g.roundRect(x + 2, y + 2, w - 4, h - 4, r - 2);
+  g.roundRect(x + 2, y + 2, Math.max(0, w - 4), Math.max(0, h - 4), Math.max(2, r - 2));
   g.stroke();
 
-  // Holographic overlay for selected cards
-  if (isSelected) {
-    g.globalCompositeOperation = 'overlay';
-    const holo = g.createLinearGradient(x, y, x + w, y + h);
-    holo.addColorStop(0, 'rgba(255, 0, 0, 0.4)');
-    holo.addColorStop(0.33, 'rgba(0, 255, 0, 0.4)');
-    holo.addColorStop(0.66, 'rgba(0, 0, 255, 0.4)');
-    holo.addColorStop(1, 'rgba(255, 255, 0, 0.4)');
-    g.fillStyle = holo;
-    g.beginPath();
-    g.roundRect(x, y, w, h, r);
-    g.fill();
-    g.globalCompositeOperation = 'source-over';
-  }
-
-  // Color selection (Punchier colors)
+  // Colors: Punchy Balatro Crimson & Deep Midnight Slate
   const isRed = card.color === 'red';
-  const mainColor = isRed ? '#e62222' : '#1a1a24'; // Brighter red, darker black/blue
-  const shadowColor = isRed ? '#990000' : '#000000'; // 3D text effect
+  const mainColor = isRed ? '#e11d48' : '#0f172a';
+  const shadowColor = isRed ? 'rgba(159, 18, 57, 0.35)' : 'rgba(15, 23, 42, 0.3)';
 
-  // 4. Corner Rank & Suit (Balatro style - very bold)
-  const rankFontSize = Math.max(12, Math.round(w * 0.4));
-  const suitFontSize = Math.max(10, Math.round(w * 0.35));
+  // 4. Corner Indices (Top-Left and Inverted Bottom-Right)
+  const rankFontSize = Math.max(9, Math.round(w * 0.25));
+  const suitFontSize = Math.max(8, Math.round(w * 0.2));
 
-  const drawText3D = (text, tx, ty, font, color, sColor) => {
-    g.font = font;
-    g.textAlign = 'center';
-    // 3D Drop
-    g.fillStyle = sColor;
-    g.fillText(text, tx, ty + 2);
-    // Main
-    g.fillStyle = color;
-    g.fillText(text, tx, ty);
-  };
+  // Top-Left Index
+  g.textAlign = 'center';
+  g.textBaseline = 'top';
 
-  const cxRank = x + Math.round(w * 0.22);
-  const cyRank = y + Math.round(h * 0.28);
-  const cySuit = y + Math.round(h * 0.48);
+  const tlX = x + Math.max(7, Math.round(w * 0.16));
+  const tlRankY = y + Math.max(4, Math.round(h * 0.06));
+  const tlSuitY = tlRankY + rankFontSize + 1;
 
-  drawText3D(card.label, cxRank, cyRank, `900 ${rankFontSize}px "Arial Black", impact, sans-serif`, mainColor, shadowColor);
-  drawText3D(card.symbol, cxRank, cySuit, `900 ${suitFontSize}px "Arial Black", sans-serif`, mainColor, shadowColor);
+  // Top-Left Rank
+  g.font = `900 ${rankFontSize}px "Arial Black", system-ui, sans-serif`;
+  g.fillStyle = shadowColor;
+  g.fillText(card.label, tlX, tlRankY + 1);
+  g.fillStyle = mainColor;
+  g.fillText(card.label, tlX, tlRankY);
 
-  // Symmetrical bottom-right for large cards
-  if (w >= 48) {
-    g.save();
-    g.translate(x + w, y + h);
-    g.rotate(Math.PI);
-    drawText3D(card.label, Math.round(w * 0.18), Math.round(h * 0.22), `900 ${Math.round(w * 0.3)}px "Arial Black", impact, sans-serif`, mainColor, shadowColor);
-    drawText3D(card.symbol, Math.round(w * 0.18), Math.round(h * 0.4), `900 ${Math.round(w * 0.25)}px "Arial Black", sans-serif`, mainColor, shadowColor);
-    g.restore();
-  }
+  // Top-Left Suit
+  g.font = `900 ${suitFontSize}px system-ui, sans-serif`;
+  g.fillStyle = shadowColor;
+  g.fillText(card.symbol, tlX, tlSuitY + 1);
+  g.fillStyle = mainColor;
+  g.fillText(card.symbol, tlX, tlSuitY);
 
-  // 5. Center Artwork
-  const cx = x + w * 0.62;
-  const cy = y + h * 0.6;
+  // Inverted Bottom-Right Index
+  g.save();
+  g.translate(x + w, y + h);
+  g.rotate(Math.PI);
+  g.font = `900 ${rankFontSize}px "Arial Black", system-ui, sans-serif`;
+  g.fillStyle = shadowColor;
+  g.fillText(card.label, Math.max(7, Math.round(w * 0.16)), Math.max(4, Math.round(h * 0.06)) + 1);
+  g.fillStyle = mainColor;
+  g.fillText(card.label, Math.max(7, Math.round(w * 0.16)), Math.max(4, Math.round(h * 0.06)));
+
+  g.font = `900 ${suitFontSize}px system-ui, sans-serif`;
+  g.fillStyle = shadowColor;
+  g.fillText(card.symbol, Math.max(7, Math.round(w * 0.16)), Math.max(4, Math.round(h * 0.06)) + rankFontSize + 2);
+  g.fillStyle = mainColor;
+  g.fillText(card.symbol, Math.max(7, Math.round(w * 0.16)), Math.max(4, Math.round(h * 0.06)) + rankFontSize + 1);
+  g.restore();
+
+  // 5. Center Artwork (Balatro Court & Number Cards)
   const isCourt = card.label === 'K' || card.label === 'Q' || card.label === 'J' || card.label === 'A';
+  const midX = x + w / 2;
+  const midY = y + h / 2;
 
   if (isCourt) {
-    const portraitW = Math.round(w * 0.55);
-    const portraitH = Math.round(h * 0.62);
-    const px = x + w - portraitW - 4;
-    const py = y + Math.round(h * 0.18);
+    const boxW = Math.max(18, Math.round(w * 0.52));
+    const boxH = Math.max(26, Math.round(h * 0.58));
+    const bx = midX - boxW / 2;
+    const by = midY - boxH / 2;
 
-    g.save();
-    // Inner frame with dark border (Balatro style portrait)
-    g.fillStyle = isRed ? '#ffcccc' : '#d1d5db';
+    // Ornate frame
+    g.fillStyle = isRed ? '#ffe4e6' : '#e2e8f0';
     g.beginPath();
-    g.roundRect(px, py, portraitW, portraitH, 3);
+    g.roundRect(bx, by, boxW, boxH, 4);
     g.fill();
-    g.lineWidth = 2;
-    g.strokeStyle = '#222222';
+    g.strokeStyle = '#1e1c24';
+    g.lineWidth = 1.5;
     g.stroke();
 
     g.textAlign = 'center';
-    if (card.label === 'K') {
-      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
-      g.fillText('🤴', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.4)}px system-ui`;
-      g.fillText('👑', px + portraitW / 2, py + portraitH * 0.28);
-    } else if (card.label === 'Q') {
-      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
-      g.fillText('👸', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.4)}px system-ui`;
-      g.fillText('✨', px + portraitW / 2, py + portraitH * 0.28);
-    } else if (card.label === 'J') {
-      g.font = `${Math.round(portraitW * 0.65)}px sans-serif`;
-      g.fillText('💂', px + portraitW / 2, py + portraitH * 0.6);
-      g.font = `bold ${Math.round(portraitW * 0.35)}px system-ui`;
-      g.fillText('⚔️', px + portraitW / 2, py + portraitH * 0.28);
-    } else if (card.label === 'A') {
-      // Giant Ace
-      drawText3D(card.symbol, px + portraitW / 2, py + portraitH * 0.75, `900 ${Math.round(portraitW * 0.95)}px sans-serif`, mainColor, shadowColor);
-    }
-    g.restore();
+    g.textBaseline = 'middle';
 
+    if (card.label === 'K') {
+      g.font = `${Math.round(boxW * 0.65)}px sans-serif`;
+      g.fillText('👑', midX, midY);
+    } else if (card.label === 'Q') {
+      g.font = `${Math.round(boxW * 0.65)}px sans-serif`;
+      g.fillText('👸', midX, midY);
+    } else if (card.label === 'J') {
+      g.font = `${Math.round(boxW * 0.62)}px sans-serif`;
+      g.fillText('⚔️', midX, midY);
+    } else if (card.label === 'A') {
+      // Giant Balatro Ace Symbol
+      const aceSize = Math.round(boxW * 0.9);
+      g.font = `900 ${aceSize}px system-ui, sans-serif`;
+      g.fillStyle = shadowColor;
+      g.fillText(card.symbol, midX, midY + 1.5);
+      g.fillStyle = mainColor;
+      g.fillText(card.symbol, midX, midY);
+    }
   } else {
-    // Number Cards: Huge bold center suit
-    const centerSize = Math.max(18, Math.round(w * 0.6));
-    drawText3D(card.symbol, cx, cy + Math.round(centerSize * 0.35), `900 ${centerSize}px sans-serif`, mainColor, shadowColor);
+    // Number Cards: Clean central bold suit
+    const centerSize = Math.max(16, Math.round(w * 0.5));
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = `900 ${centerSize}px system-ui, sans-serif`;
+    g.fillStyle = shadowColor;
+    g.fillText(card.symbol, midX, midY + 1.5);
+    g.fillStyle = mainColor;
+    g.fillText(card.symbol, midX, midY);
   }
 
   g.restore();

@@ -104,6 +104,41 @@ export class SandtrixGame {
     this.canvas.addEventListener('touchmove', this.onTouchMove, {passive: false});
     this.canvas.addEventListener('touchend', this.onTouchEnd, {passive: false});
     
+    // On-screen control bar for mobile
+    this.controlBar = document.createElement('div');
+    this.controlBar.style.cssText = 'position:absolute;bottom:max(12px, env(safe-area-inset-bottom, 12px));left:0;right:0;display:flex;justify-content:center;gap:12px;padding:0 12px;z-index:20;pointer-events:none;';
+    this.controlBar.innerHTML = `
+      <button id="btn-left" type="button" style="pointer-events:auto;width:56px;height:56px;border-radius:18px;background:rgba(30,41,59,0.92);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.2);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,0.5);active:scale-95;">◀</button>
+      <button id="btn-rotate" type="button" style="pointer-events:auto;width:56px;height:56px;border-radius:18px;background:rgba(124,77,255,0.92);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.3);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 14px rgba(124,77,255,0.4);active:scale-95;">↻</button>
+      <button id="btn-drop" type="button" style="pointer-events:auto;width:56px;height:56px;border-radius:18px;background:rgba(234,179,8,0.92);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.3);color:#0f172a;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 14px rgba(234,179,8,0.4);active:scale-95;">⬇</button>
+      <button id="btn-right" type="button" style="pointer-events:auto;width:56px;height:56px;border-radius:18px;background:rgba(30,41,59,0.92);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.2);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,0.5);active:scale-95;">▶</button>
+    `;
+    container.appendChild(this.controlBar);
+
+    this.controlBar.querySelector('#btn-left')?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (this.activePiece && !this.checkCollision(this.activePiece.x - this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x -= this.blockSize;
+        playTone(320, 'sine', 0.04, 0.05);
+      }
+    });
+    this.controlBar.querySelector('#btn-right')?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (this.activePiece && !this.checkCollision(this.activePiece.x + this.blockSize, this.activePiece.y, this.activePiece.shape)) {
+        this.activePiece.x += this.blockSize;
+        playTone(320, 'sine', 0.04, 0.05);
+      }
+    });
+    this.controlBar.querySelector('#btn-rotate')?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      this.rotatePiece();
+    });
+    this.controlBar.querySelector('#btn-drop')?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      this.fallTimer = this.fallInterval;
+      playTone(220, 'triangle', 0.04, 0.06);
+    });
+
     this.reset();
   }
   
@@ -375,14 +410,13 @@ export class SandtrixGame {
     g.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     g.lineWidth = 1;
     
-    // Calculate rendering cell sizes
-    // We want the 40x80 grid to fit in an area, say 240x480 (centered)
-    const renderW = 320;
-    const renderH = 640;
+    // Calculate rendering cell sizes (40x80 grid = 1:2 ratio)
+    const renderH = 530;
+    const renderW = 265;
     const cellW = renderW / this.cols;
     const cellH = renderH / this.rows;
     const offX = (width - renderW) / 2;
-    const offY = height - renderH;
+    const offY = 38;
     
     // Draw play area background
     g.fillStyle = '#000000';
@@ -485,6 +519,7 @@ export class SandtrixGame {
     this.canvas.removeEventListener('touchstart', this.onTouchStart);
     this.canvas.removeEventListener('touchmove', this.onTouchMove);
     this.canvas.removeEventListener('touchend', this.onTouchEnd);
+    this.controlBar?.remove();
     this.canvas.remove();
   }
 }

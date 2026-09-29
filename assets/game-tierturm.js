@@ -100,6 +100,9 @@ class TierturmGame {
     this.resize();
 
     this.canvas.addEventListener('pointerdown', this.onPointer);
+    this.canvas.addEventListener('touchstart', this.onPointer, { passive: false });
+    this.container.addEventListener('pointerdown', this.onPointer);
+    this.container.addEventListener('touchstart', this.onPointer, { passive: false });
     window.addEventListener('keydown', this.onKey);
 
     this.initGame();
@@ -171,8 +174,12 @@ class TierturmGame {
     }
   }
 
+  lastTapTime = 0;
   onPointer = e => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
+    const now = performance.now();
+    if (now - this.lastTapTime < 80) return;
+    this.lastTapTime = now;
     this.tap();
   };
 
@@ -340,11 +347,15 @@ class TierturmGame {
 
   resize() {
     const rect = this.container.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.canvas.width = Math.max(1, Math.round(rect.width * dpr));
     this.canvas.height = Math.max(1, Math.round(rect.height * dpr));
     this.scale = this.canvas.height / this.height;
     this.width = this.canvas.width / this.scale;
+    if (this.stack && this.stack.length === 1 && !this.gameOver) {
+      this.stack[0].x = (this.width - this.stack[0].w) / 2;
+    }
     this.draw();
   }
 
@@ -512,7 +523,8 @@ class TierturmGame {
     // Block body with rounded corners
     g.fillStyle = animal.color;
     g.beginPath();
-    g.roundRect(x, y, w, h, 8);
+    const radius = Math.max(1, Math.min(8, Math.floor(w / 4)));
+    g.roundRect(x, y, w, h, radius);
     g.fill();
 
     // Top highlight rim

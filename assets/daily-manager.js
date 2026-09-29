@@ -101,67 +101,80 @@ export function openDailyModal() {
 
   const backdrop = document.createElement('div');
   backdrop.id = 'daily-modal-root';
-  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center sm:p-3 bg-black/90 backdrop-blur-md select-none animate-fade-in';
+  backdrop.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md select-none animate-fade-in';
 
   let currentRotation = 0;
   let isSpinning = false;
 
   const modal = document.createElement('div');
-  modal.className = 'flex flex-col w-full h-full sm:max-w-sm sm:h-auto sm:max-h-[90vh] bg-surface sm:rounded-3xl border-0 sm:border border-line shadow-2xl overflow-y-auto p-5 text-center space-y-4 animate-[slide-up_0.2s_ease-out]';
+  modal.className = 'flex flex-col w-full h-full sm:max-w-md sm:h-auto sm:max-h-[92vh] sm:rounded-3xl bg-surface border-0 sm:border border-line shadow-2xl overflow-hidden pt-safe pb-safe px-4 sm:p-6';
 
   modal.innerHTML = `
-    <div class="flex items-center justify-between border-b border-line pb-3">
-      <div class="flex items-center gap-2 text-left">
-        <span class="text-2xl">🎁</span>
+    <!-- Top Header Bar -->
+    <div class="flex items-center justify-between border-b border-line/60 pb-3 shrink-0">
+      <button id="back-daily-btn" type="button" class="flex items-center gap-1.5 text-ink font-bold text-xs py-1 px-2.5 rounded-full bg-surface-raised border border-line active:scale-95 transition cursor-pointer">
+        <span class="text-xs">←</span>
+        <span>Zurück</span>
+      </button>
+      <div class="flex items-center gap-2 text-center">
+        <span class="text-xl">🎁</span>
         <div>
-          <h2 class="font-extrabold text-base leading-tight">Täglicher Bonus</h2>
-          <p class="text-xs text-ink-muted">Streak: <span class="text-pop-yellow font-black">${state.streak} Tage 🔥</span></p>
+          <h2 class="font-black text-sm sm:text-base leading-tight">Täglicher Bonus</h2>
+          <p class="text-[11px] text-pop-yellow font-bold">${state.streak} Tage Streak 🔥</p>
         </div>
       </div>
-      <button id="close-daily-btn" type="button" class="w-8 h-8 rounded-full bg-surface-raised grid place-items-center text-ink-muted font-bold active:scale-95 transition">✕</button>
+      <button id="close-daily-btn" type="button" class="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-ink-muted hover:text-ink font-black active:scale-95 transition border border-line cursor-pointer" aria-label="Schließen">✕</button>
     </div>
 
-    <!-- Daily Streak Row -->
-    <div class="grid grid-cols-7 gap-1 p-2 bg-surface-raised rounded-2xl">
-      ${[1, 2, 3, 4, 5, 6, 7].map(d => {
-        const isReached = d <= state.streak;
-        const isCurrent = d === state.streak;
-        return `
-          <div class="flex flex-col items-center py-1.5 px-0.5 rounded-xl ${isCurrent ? 'bg-amber-400 text-bg font-black scale-105 shadow' : isReached ? 'bg-surface text-amber-400 font-bold' : 'opacity-40 text-ink-muted'} text-[10px]">
-            <span>Tag ${d}</span>
-            <span class="text-sm mt-0.5">${d === 7 ? '👑' : '🪙'}</span>
-            <span class="text-[9px] mt-0.5">+${d * 10}</span>
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto scroll-touch py-3 flex flex-col items-center justify-between space-y-4">
+      <!-- Daily Streak Row -->
+      <div class="w-full grid grid-cols-7 gap-1 p-2 bg-surface-raised rounded-2xl border border-line/40">
+        ${[1, 2, 3, 4, 5, 6, 7].map(d => {
+          const isReached = d <= state.streak;
+          const isCurrent = d === state.streak;
+          return `
+            <div class="flex flex-col items-center py-1.5 px-0.5 rounded-xl ${isCurrent ? 'bg-amber-400 text-bg font-black scale-105 shadow' : isReached ? 'bg-surface text-amber-400 font-bold' : 'opacity-40 text-ink-muted'} text-[10px]">
+              <span>Tag ${d}</span>
+              <span class="text-sm mt-0.5">${d === 7 ? '👑' : '🪙'}</span>
+              <span class="text-[9px] mt-0.5">+${d * 10}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Glücksrad / Wheel -->
+      <div class="relative w-60 h-60 my-auto flex items-center justify-center shrink-0">
+        <!-- Pointer -->
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 text-3xl filter drop-shadow">🔻</div>
+        <canvas id="wheel-canvas" width="240" height="240" class="rounded-full shadow-2xl border-4 border-amber-400/80"></canvas>
+        <div class="absolute w-12 h-12 rounded-full bg-surface border-4 border-amber-400 shadow-md grid place-items-center font-black text-xs text-pop-yellow">
+          GO!
+        </div>
+      </div>
+
+      <!-- Win Result / Spin Button -->
+      <div id="daily-action-box" class="w-full pt-1 shrink-0">
+        ${canSpin ? `
+          <button id="spin-wheel-btn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-bg font-black text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition cursor-pointer">
+            🎰 Glücksrad drehen (Kostenlos)
+          </button>
+        ` : `
+          <div class="p-3.5 rounded-2xl bg-surface-raised border border-line text-xs text-ink-muted text-center">
+            <span>✅ Heute schon gedreht! Morgen wiederkommen für Tag ${state.streak + 1} 🔥</span>
           </div>
-        `;
-      }).join('')}
-    </div>
-
-    <!-- Glücksrad / Wheel -->
-    <div class="relative w-64 h-64 mx-auto my-2 flex items-center justify-center">
-      <!-- Pointer -->
-      <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 text-3xl filter drop-shadow">🔻</div>
-      <canvas id="wheel-canvas" width="240" height="240" class="rounded-full shadow-2xl border-4 border-amber-400/80"></canvas>
-      <div class="absolute w-12 h-12 rounded-full bg-surface border-4 border-amber-400 shadow-md grid place-items-center font-black text-xs text-pop-yellow">
-        GO!
+        `}
       </div>
-    </div>
-
-    <!-- Win Result / Spin Button -->
-    <div id="daily-action-box" class="pt-1">
-      ${canSpin ? `
-        <button id="spin-wheel-btn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-bg font-black text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition cursor-pointer">
-          🎰 Glücksrad drehen (Kostenlos)
-        </button>
-      ` : `
-        <div class="p-3 rounded-2xl bg-surface-raised border border-line text-xs text-ink-muted">
-          <span>✅ Heute schon gedreht! Morgen wiederkommen für Tag ${state.streak + 1} 🔥</span>
-        </div>
-      `}
     </div>
   `;
 
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
+
+  // Close handlers
+  const closeModal = () => backdrop.remove();
+  modal.querySelector('#close-daily-btn')?.addEventListener('click', closeModal);
+  modal.querySelector('#back-daily-btn')?.addEventListener('click', closeModal);
 
   // Draw wheel on canvas
   const canvas = modal.querySelector('#wheel-canvas');

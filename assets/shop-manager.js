@@ -264,6 +264,8 @@ export function openShopModal() {
         height: 100dvh;
         border-radius: 0;
         border: none;
+        padding-top: max(12px, env(safe-area-inset-top, 12px));
+        padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
       }
     }
   `;
@@ -285,21 +287,27 @@ export function openShopModal() {
 
     // Header
     const header = document.createElement('div');
-    header.style.cssText = 'padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);background:#1a1533;';
+    header.style.cssText = 'padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);background:#1a1533;shrink:0;';
     header.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:24px;">🛍️</span>
-        <div>
-          <h2 style="font-size:19px;font-weight:900;margin:0;letter-spacing:-0.02em;">Design-Shop</h2>
-          <p style="font-size:12px;color:rgba(255,255,255,0.6);margin:2px 0 0 0;">Freischalten & Ausrüsten</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="shop-back-btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:bold;cursor:pointer;display:flex;align-items:center;gap:4px;">
+          <span>←</span>
+          <span>Zurück</span>
+        </button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:20px;">🛍️</span>
+          <div>
+            <h2 style="font-size:16px;font-weight:900;margin:0;letter-spacing:-0.02em;">Design-Shop</h2>
+            <p style="font-size:11px;color:rgba(255,255,255,0.6);margin:0;">Skins & Themen</p>
+          </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);padding:5px 12px;border-radius:999px;font-weight:900;color:#ffd700;font-size:15px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);padding:4px 10px;border-radius:999px;font-weight:900;color:#ffd700;font-size:13px;">
           <span>🪙</span>
           <span>${coins}</span>
         </div>
-        <button id="shop-close-btn" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:34px;height:34px;border-radius:999px;font-size:18px;font-weight:bold;cursor:pointer;display:grid;place-items:center;">✕</button>
+        <button id="shop-close-btn" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:999px;font-size:16px;font-weight:bold;cursor:pointer;display:grid;place-items:center;" aria-label="Schließen">✕</button>
       </div>
     `;
     dialog.appendChild(header);
@@ -401,6 +409,7 @@ export function openShopModal() {
     container.appendChild(dialog);
 
     dialog.querySelector('#shop-close-btn').onclick = () => container.remove();
+    dialog.querySelector('#shop-back-btn').onclick = () => container.remove();
   }
 
   container.onclick = (e) => {

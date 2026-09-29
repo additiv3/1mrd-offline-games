@@ -227,19 +227,17 @@ function checkRim(world, hoop, rimX, isFrontRim) {
   // Visual & audio feedback
   if (!hoop.touched) {
     hoop.touched = true;
+    hoop.netWave = 0.5;
     playSound('rim');
   }
 
-  // 1. Bounce the ball safely backwards and upwards!
-  world.ballX = Math.max(30, rimX + (nx < 0 ? -collisionRadius : collisionRadius * 0.5));
-  world.ballY = hoop.y + ny * collisionRadius;
+  // Smooth realistic recoil without jarring horizontal jumps
+  world.ballX = Math.max(world.targetBallX - 16, world.ballX - 12);
+  world.ballY = hoop.y + (ny < 0 ? -collisionRadius : collisionRadius);
   
-  // Clean upward recoil, smooth transition
-  world.vy = -Math.abs(world.vy) * 0.5 - 120;
-  world.vx = -120; // Normal backward bounce velocity
-  world.squish = 0.25;
-
-  // 2. No pause, keep it smooth
+  // Bounce velocity smoothly adjusted
+  world.vy = ny < 0 ? -Math.abs(world.vy) * 0.6 - 150 : Math.abs(world.vy) * 0.5 + 80;
+  world.squish = 0.22;
   world.hitPause = 0;
 
   world.events.push({

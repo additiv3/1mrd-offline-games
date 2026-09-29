@@ -243,18 +243,18 @@ export class CrossSumGame {
             <span class="text-2xl drop-shadow-sm">➕</span>
             <div class="flex flex-col justify-center">
               <h2 class="text-sm font-black leading-tight tracking-wide">Cross Sum</h2>
-              <span class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">\${this.difficulty}</span>
+              <span class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">${this.difficulty}</span>
             </div>
           </div>
           <div class="flex flex-col items-end">
              <span class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Score</span>
-             <span class="font-black text-ink text-sm leading-tight">\${this.difficulty === 'schwer' ? 45 : this.difficulty === 'mittel' ? 30 : 20}</span>
+             <span class="font-black text-ink text-sm leading-tight">${this.difficulty === 'schwer' ? 45 : this.difficulty === 'mittel' ? 30 : 20}</span>
           </div>
         </div>
 
         <!-- Puzzle Grid -->
         <div class="flex-1 flex flex-col items-center justify-center min-h-0 w-full mb-3 px-1">
-          \${gridHtml}
+          ${gridHtml}
         </div>
 
         <!-- Controls -->
@@ -271,7 +271,7 @@ export class CrossSumGame {
 
         <!-- Keypad -->
         <div class="shrink-0 mb-1 px-1">
-          \${numpadHtml}
+          ${numpadHtml}
         </div>
       </div>
     `;

@@ -385,10 +385,12 @@ class SudokuGame {
     boardWrapper.className = 'flex-1 min-h-0 flex flex-col items-center justify-center w-full px-1';
 
     const boardContainer = document.createElement('div');
-    // Using grid-template-columns: repeat(9, 1fr) explicitly via style to satisfy prompt
     boardContainer.style.display = 'grid';
     boardContainer.style.gridTemplateColumns = 'repeat(9, 1fr)';
-    boardContainer.className = 'w-full max-w-[400px] aspect-square rounded-xl bg-surface-raised border-[3px] border-white/50 shadow-2xl p-0 gap-0';
+    boardContainer.style.gridTemplateRows = 'repeat(9, 1fr)';
+    boardContainer.style.width = 'min(94vw, 380px, calc(100dvh - 250px))';
+    boardContainer.style.height = 'min(94vw, 380px, calc(100dvh - 250px))';
+    boardContainer.className = 'rounded-xl bg-surface-raised border-[3px] border-white/50 shadow-2xl p-0 gap-0 overflow-hidden shrink-0';
     boardContainer.id = 'sudoku-board';
 
     for (let r = 0; r < 9; r++) {
@@ -400,10 +402,10 @@ class SudokuGame {
         cell.setAttribute('data-c', String(c));
 
         // Subgrid border styling - thick borders for 3x3 boxes
-        const borderRight = (c === 2 || c === 5) ? 'border-r-[3px] border-r-white/50' : 'border-r border-r-white/10';
-        const borderBottom = (r === 2 || r === 5) ? 'border-b-[3px] border-b-white/50' : 'border-b border-b-white/10';
+        const borderRight = (c === 2 || c === 5) ? 'border-r-[3px] border-r-white/50' : (c === 8 ? '' : 'border-r border-r-white/10');
+        const borderBottom = (r === 2 || r === 5) ? 'border-b-[3px] border-b-white/50' : (r === 8 ? '' : 'border-b border-b-white/10');
 
-        cell.className = `relative aspect-square flex items-center justify-center font-bold text-xl md:text-2xl transition-colors duration-100 ${borderRight} ${borderBottom}`;
+        cell.className = `relative w-full h-full flex items-center justify-center font-bold text-lg sm:text-xl transition-colors duration-100 ${borderRight} ${borderBottom} cursor-pointer`;
         cell.addEventListener('click', () => this.selectCell(r, c));
         boardContainer.appendChild(cell);
       }

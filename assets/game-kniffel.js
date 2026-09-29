@@ -299,8 +299,8 @@ export class KniffelGame {
       const dots = diceDots[val] || [];
 
       return `
-        <button type="button" data-die="${idx}" class="die-btn relative flex-1 aspect-square max-w-[72px] min-h-[64px] rounded-2xl bg-gradient-to-br ${isHeld ? 'from-amber-300 via-amber-400 to-amber-500 ring-4 ring-amber-200 text-bg shadow-[0_8px_16px_rgba(245,158,11,0.6),inset_0_2px_4px_rgba(255,255,255,0.8)] -translate-y-2' : 'from-white via-slate-50 to-slate-200 text-slate-800 shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_4px_6px_rgba(255,255,255,1)] border border-slate-300/50'} flex items-center justify-center p-2 transition-all active:scale-95 cursor-pointer" style="transform: rotate(${angle}deg) ${isHeld ? 'translateY(-10px)' : ''}">
-          <div class="w-full h-full relative grid grid-cols-3 grid-rows-3 gap-[2px]">
+        <button type="button" data-die="${idx}" class="die-btn relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl ${isHeld ? 'bg-amber-400 ring-4 ring-amber-300 shadow-[0_8px_16px_rgba(245,158,11,0.5)] -translate-y-2' : 'bg-white shadow-[0_4px_10px_rgba(0,0,0,0.35)] border border-slate-200'} flex items-center justify-center p-1.5 transition-all active:scale-95 cursor-pointer shrink-0" style="transform: rotate(${angle}deg) ${isHeld ? 'translateY(-8px)' : ''}">
+          <div class="w-full h-full relative grid grid-cols-3 grid-rows-3 p-0.5">
             ${dots.map(pos => {
               let gridClass = '';
               if (pos === 'top-left') gridClass = 'col-start-1 row-start-1';
@@ -310,10 +310,11 @@ export class KniffelGame {
               if (pos === 'middle-right') gridClass = 'col-start-3 row-start-2';
               if (pos === 'bottom-left') gridClass = 'col-start-1 row-start-3';
               if (pos === 'bottom-right') gridClass = 'col-start-3 row-start-3';
-              return `<div class="${gridClass} flex items-center justify-center"><span class="w-[18px] h-[18px] rounded-full ${isHeld ? 'bg-amber-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]' : 'bg-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'}"></span></div>`;
+              const dotColor = val === 1 && pos === 'center' ? 'bg-red-600' : (isHeld ? 'bg-slate-900' : 'bg-slate-900');
+              return `<div class="${gridClass} flex items-center justify-center"><span class="w-2.5 h-2.5 rounded-full ${dotColor} shadow-inner"></span></div>`;
             }).join('')}
           </div>
-          ${isHeld ? '<span class="absolute -top-3 rounded-full bg-amber-900 text-amber-100 border-2 border-amber-400 text-[10px] font-black px-2 py-0.5 shadow-lg z-10 tracking-widest">HOLD</span>' : ''}
+          ${isHeld ? '<span class="absolute -top-2.5 rounded-full bg-slate-900 text-amber-300 border border-amber-400 text-[9px] font-black px-1.5 py-0.2 shadow z-10 tracking-wider">HOLD</span>' : ''}
         </button>
       `;
     }).join('');
@@ -382,7 +383,7 @@ export class KniffelGame {
         </div>
 
         <!-- Scorecard Table -->
-        <div class="flex-1 overflow-y-auto px-3 py-2">
+        <div class="flex-1 overflow-y-auto scroll-touch px-3 py-2 pb-safe">
           <div class="rounded-2xl bg-surface border border-line overflow-hidden shadow-md">
             <table class="w-full text-left border-collapse">
               <thead>
