@@ -1,7 +1,1 @@
-{
-  "version": "1.8.4",
-  "commit": "b7e2f1a",
-  "timestamp": "29.09.2026, 11:25",
-  "gamesCount": 17,
-  "features": ["LuxuryCardEngine", "CourtPortraits", "TouchOptimizedKeypads", "DailyBonus", "StampCards", "Challenges", "Shop", "17GamesOffline"]
-}
+{"semver":"2.0.0","id":"3c67601","commit":"3c67601","stamp":"30.09.2026, 10:44"}

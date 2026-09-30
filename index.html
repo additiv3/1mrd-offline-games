@@ -16,90 +16,11 @@
     <link rel="icon" type="image/png" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/icon-180.png" />
     <meta name="description" content="1 Milliarde Offline Games – Minispiele ohne Internet: gegen die KI, zu zweit an einem Handy oder allein." />
-    <meta property="og:title" content="1 Milliarde Offline Games" />
-    <meta property="og:description" content="1 Milliarde Offline Games – Minispiele ohne Internet: gegen die KI, zu zweit an einem Handy oder allein." />
     <title>1 Milliarde Offline Games</title>
-    <script type="module" crossorigin src="./assets/index-ONzyNlzA.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BCeFSnmE.css">
-    <style>
-      :root {
-        --sat: env(safe-area-inset-top, 0px);
-        --sab: env(safe-area-inset-bottom, 0px);
-        --sal: env(safe-area-inset-left, 0px);
-        --sar: env(safe-area-inset-right, 0px);
-      }
-      html, body {
-        height: 100%;
-        height: 100dvh;
-        width: 100vw;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        position: fixed;
-        inset: 0;
-        background: #0e0b1f;
-        color: #fbf8ff;
-        font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif;
-        -webkit-tap-highlight-color: transparent;
-      }
-      #root {
-        height: 100%;
-        height: 100dvh;
-        width: 100vw;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        position: fixed;
-        inset: 0;
-      }
-      .scroll-touch {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-y: contain;
-      }
-      .pt-safe {
-        padding-top: max(12px, env(safe-area-inset-top, 12px));
-      }
-      .pb-safe {
-        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
-      }
-      .pl-safe {
-        padding-left: max(12px, env(safe-area-inset-left, 12px));
-      }
-      .pr-safe {
-        padding-right: max(12px, env(safe-area-inset-right, 12px));
-      }
-    </style>
+    <script type="module" crossorigin src="./assets/index-hnuggwoo.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CSLDZ4vJ.css">
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Service Worker registration with instant update check and auto-reload on new version
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
-          .then(function(reg) {
-            reg.update();
-          })
-          .catch(function(err) {
-            console.warn('SW registration:', err);
-          });
-
-        var refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-      }
-
-      // Desktop / Laptop mouse wheel forwarding: ensure scrolling works anywhere on the screen
-      window.addEventListener('wheel', function(e) {
-        var scrollable = document.querySelector('.scroll-touch');
-        if (scrollable && !e.target.closest('.scroll-touch')) {
-          scrollable.scrollTop += e.deltaY;
-        }
-      }, { passive: true });
-    </script>
   </body>
 </html>
