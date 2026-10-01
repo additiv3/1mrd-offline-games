@@ -1,0 +1,1 @@
+function e(e,t,n,r){let i=Math.min(e/n,t/r);return{s:i,ox:(e-n*i)/2,oy:(t-r*i)/2}}function t(e,t,n){return{x:(t-e.ox)/e.s,y:(n-e.oy)/e.s}}export{t as n,e as t};
