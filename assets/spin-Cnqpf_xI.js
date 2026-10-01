@@ -1,0 +1,1 @@
+var e=e=>(e%360+360)%360;function t(t,n,r){return t+Math.max(0,r)*360+e(n-t)}function n(e,n,r,i,a=0){let o=360/n;return t(e,-(r*o+o/2+a*o),i)}function r(e,n,r,i,a=0){let o=360/n;return t(e,r*o+a*o,i)}export{n,r as t};
