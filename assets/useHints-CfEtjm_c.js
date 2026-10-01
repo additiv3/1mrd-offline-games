@@ -1,1 +1,0 @@
-import{C as e}from"./index-BK5JhTvs.js";var t=e();function n(e){return{count:(0,t.useSyncExternalStore)(e.hints.subscribe,e.hints.count,e.hints.count),spend:()=>e.hints.use()}}export{n as t};
