@@ -1,4 +1,4 @@
-# 1 Milliarde Offline Games
+# 1 Milliarden Offline Games
 
 Minispiele fürs Handy – ohne Internet: gegen die KI, zu zweit an einem Handy oder allein.
 (Ungefähr. Ein paar fehlen noch.)
