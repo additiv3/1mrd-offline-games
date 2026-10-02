@@ -1,0 +1,1 @@
+var e={ball:`ball_classic`,card:`card_classic`,face:`face_classic`},t={...e},n=n=>t[n]??e[n]??``;function r(e){t={...e}}export{r as n,n as t};

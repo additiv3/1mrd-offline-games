@@ -1,0 +1,1 @@
+import{n as e}from"./jsx-runtime-DLNB9Qsn.js";var t=e();function n(e){return{count:(0,t.useSyncExternalStore)(e.hints.subscribe,e.hints.count,e.hints.count),spend:()=>e.hints.use()}}export{n as t};
