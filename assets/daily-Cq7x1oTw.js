@@ -1,0 +1,1 @@
+function e(e){return`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,`0`)}-${String(e.getDate()).padStart(2,`0`)}`}var t=e=>`${e.slice(8,10)}.${e.slice(5,7)}.`;function n(e){let t=2166136261;for(let n=0;n<e.length;n++)t^=e.charCodeAt(n),t=Math.imul(t,16777619);return t>>>0}export{n,t as r,e as t};
