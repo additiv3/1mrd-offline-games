@@ -1,0 +1,1 @@
+var e={ball:`ball_classic`,card:`card_classic`,face:`face_classic`},t={...e},n=n=>t[n]??e[n]??``;function r(e){t={...e}}var i=new Set,a=null,o=e=>i.has(e);function s(e){i=new Set(e)}function c(e){a=e}function l(e){return i.has(e)&&a?a(e):!1}export{r as a,c as i,n,s as o,o as r,l as t};
