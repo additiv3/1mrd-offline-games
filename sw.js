@@ -1,38 +1,71 @@
 /* 1 Milliarden Offline Games – Service Worker: offline spielbar, online immer die neueste Version.
    Vorlage: das Plugin "mrd-pwa" in vite.config.ts setzt Cache-Name und Vorab-Liste ein und schreibt dist/sw.js. */
-const CACHE = 'mrd-offline-games-119cea1';
-const PRECACHE = ["./","./index.html","./manifest.webmanifest","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512-maskable.png","./icons/icon-512.png","./assets/index-DYL8t8gK.js","./assets/BackupSheet-B34CsjqI.js","./assets/BonusSheet-Bt-2D8qI.js","./assets/ChallengesSheet-Bs1unjsn.js","./assets/PlayingCard-CLzB3IHa.js","./assets/ShopSheet-C8FGE-tZ.js","./assets/StatsSheet-C1rtypEl.js","./assets/backend-Dhq1nF9X.js","./assets/ballLooks-DEw97Tl-.js","./assets/canvasGame-BXOl5J8L.js","./assets/canvasMenu-FN3EhjM2.js","./assets/cosmetics-B59z6Phw.js","./assets/firebaseBackend-CIhMRYHJ.js","./assets/fitWorld-kOZbmpb_.js","./assets/game--uMkhHiI.js","./assets/game-00VvCjSE.js","./assets/game-295p1IwA.js","./assets/game-48ucjllg.js","./assets/game-52D8mwP4.js","./assets/game-B16HJnk0.js","./assets/game-B1mOZ8PE.js","./assets/game-B48BsewU.js","./assets/game-BClOu6ws.js","./assets/game-BDkZlxGF.js","./assets/game-BKqYea5p.js","./assets/game-BLYECvvc.js","./assets/game-BNWsbHWR.js","./assets/game-BSwMnoti.js","./assets/game-BTLdEMMp.js","./assets/game-BTVbv1vJ.js","./assets/game-BW8eSkxZ.js","./assets/game-BZ0Q86ye.js","./assets/game-BZXiS-Fb.js","./assets/game-BZg1QcUP.js","./assets/game-BaRLy9ky.js","./assets/game-BbVvoNHe.js","./assets/game-Bgg173Wl.js","./assets/game-BidVqA3Z.js","./assets/game-BkSuoe-e.js","./assets/game-Bl4A2qnC.js","./assets/game-Bmbvvsni.js","./assets/game-BmoeeSah.js","./assets/game-BozzmYzy.js","./assets/game-Br6tXmls.js","./assets/game-BuauT8L3.js","./assets/game-BvckxrjI.js","./assets/game-BwJThxS_.js","./assets/game-BxSqeZ6X.js","./assets/game-Bxhz6VO7.js","./assets/game-C0SAL0ug.js","./assets/game-C0baC2YI.js","./assets/game-CC0nENUF.js","./assets/game-CEerWPet.js","./assets/game-CKloxt9r.js","./assets/game-CL5t3w0a.js","./assets/game-CMMmtTgJ.js","./assets/game-COsC3SkX.js","./assets/game-CRM1nIvM.js","./assets/game-CTkIdXoi.js","./assets/game-CUBfuD2o.js","./assets/game-CW8I-jBM.js","./assets/game-CWvB34-g.js","./assets/game-CXOfwU9k.js","./assets/game-CdXgtB0r.js","./assets/game-CfpqWshb.js","./assets/game-CfsaIq1x.js","./assets/game-CgFUHwbL.js","./assets/game-Chpek4u3.js","./assets/game-Cko1c8Yf.js","./assets/game-ClUNrLtb.js","./assets/game-Cn85qXYT.js","./assets/game-Co3NO5HL.js","./assets/game-CpUNwDPv.js","./assets/game-D-79-McI.js","./assets/game-D-VM6O-v.js","./assets/game-D0CV_905.js","./assets/game-D1CfJ25-.js","./assets/game-D1nzN5AH.js","./assets/game-D2_3iGfv.js","./assets/game-D5ZrOg0k.js","./assets/game-D6wN-ZUR.js","./assets/game-D920_qob.js","./assets/game-D9UCLBWP.js","./assets/game-DB0ribPi.js","./assets/game-DHrV9a-f.js","./assets/game-DJ4bjdly.js","./assets/game-DJd8I0Ey.js","./assets/game-DKt1MCkA.js","./assets/game-DLCsGUtx.js","./assets/game-DLavzgUp.js","./assets/game-DWniR6Rs.js","./assets/game-DXTSnQMm.js","./assets/game-D_lcZ1Fv.js","./assets/game-DbSttTFT.js","./assets/game-DgPmKR99.js","./assets/game-Dp5fdMxF.js","./assets/game-DranLi5Y.js","./assets/game-DxSW7NAk.js","./assets/game-IAjsP_4Z.js","./assets/game-IBbgJsr_.js","./assets/game-J58MOqug.js","./assets/game-JguDMiwo.js","./assets/game-L-ZPSI8k.js","./assets/game-LQTEvrUG.js","./assets/game-T1zUrpSj.js","./assets/game-VJyMZI8k.js","./assets/game-WSoLgUEm.js","./assets/game-Wko9-UPO.js","./assets/game-agUl4ebo.js","./assets/game-ai6Bd-6a.js","./assets/game-ala7wgfk.js","./assets/game-apBtduJ5.js","./assets/game-fJRtly8L.js","./assets/game-j52vRPQV.js","./assets/game-seH5xt5F.js","./assets/game-vBXMmUa6.js","./assets/game-xc3pXp8V.js","./assets/gameSkins-BBxRnUsV.js","./assets/guards-BRQZjza9.js","./assets/hud-Bvz4j6P6.js","./assets/jsx-runtime-DLNB9Qsn.js","./assets/moveFeed-o53R8TAZ.js","./assets/reactGame-C4oQ95sP.js","./assets/rng-CF0hxTOu.js","./assets/search-PBNH6H8g.js","./assets/soundSets-BbBkuu-T.js","./assets/spin-Cnqpf_xI.js","./assets/swapDuel-B9_GYR4y.js","./assets/terms-C33aV_tT.js","./assets/turns-DWTh5WW9.js","./assets/ui-bFxOEU9q.js","./assets/useCoopGame-CIDefH5j.js","./assets/useCountdown-48T6VYL6.js","./assets/useElementSize-0Ho7WBKh.js","./assets/useHints-C6cZiAct.js","./assets/useOnlineMatch-KVxgyj9j.js","./assets/game-DPoCpSei.css","./assets/game-PqoHXDw_.css","./assets/index-DoMqPm8L.css"];
+const CACHE = 'mrd-offline-games-99563a4';
+const PRECACHE = ["./","./index.html","./manifest.webmanifest","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512-maskable.png","./icons/icon-512.png","./assets/index-54cJVQd0.js","./assets/BackupSheet-xdMTK6y5.js","./assets/BonusSheet-6Aw3oamb.js","./assets/ChallengesSheet-BOGq1ZmK.js","./assets/PlayingCard-CLzB3IHa.js","./assets/ShopSheet-BH4T6ARA.js","./assets/StatsSheet-DnddLjRf.js","./assets/backend-CVuQha5j.js","./assets/ballLooks-DEw97Tl-.js","./assets/canvasGame-BXOl5J8L.js","./assets/canvasMenu-FN3EhjM2.js","./assets/cosmetics-B59z6Phw.js","./assets/firebaseBackend-Bsy8MTYJ.js","./assets/fitWorld-kOZbmpb_.js","./assets/game--J_xXlcg.js","./assets/game-0DhKallE.js","./assets/game-4odtHGQI.js","./assets/game-6-iQR04i.js","./assets/game-6h9qxC4t.js","./assets/game-B1D-nZPQ.js","./assets/game-B2ObQOlf.js","./assets/game-B2QUhnpw.js","./assets/game-B3QZXkmI.js","./assets/game-B3_d0vWU.js","./assets/game-B4grMZQx.js","./assets/game-B5yp5SP6.js","./assets/game-BEVBISzI.js","./assets/game-BHW1bTmD.js","./assets/game-BJFGo6Wo.js","./assets/game-BKBLV6E7.js","./assets/game-BLAz2Sgr.js","./assets/game-BM6DJdHP.js","./assets/game-BNur1p2C.js","./assets/game-BQAkvXyI.js","./assets/game-BWhLeJ1K.js","./assets/game-B_9u0mnu.js","./assets/game-BbKksehM.js","./assets/game-BfwB0v25.js","./assets/game-Bg03_FXv.js","./assets/game-BiCbrHmO.js","./assets/game-Bjq2wlni.js","./assets/game-Born_eMw.js","./assets/game-Bqz3Ie1q.js","./assets/game-BsZq3-bq.js","./assets/game-BtXLou-C.js","./assets/game-BvzyZKgh.js","./assets/game-C2YSbk80.js","./assets/game-C2qgJz1Z.js","./assets/game-C3_fZezd.js","./assets/game-C4YeO86A.js","./assets/game-C5u8Mnoq.js","./assets/game-C8uu44w5.js","./assets/game-CBfDG6eW.js","./assets/game-CD7FjSeC.js","./assets/game-CDD9a_hc.js","./assets/game-CEDulW1H.js","./assets/game-CGApEAZ6.js","./assets/game-CGJbdF28.js","./assets/game-CGcI4S9n.js","./assets/game-CLnCIn2N.js","./assets/game-CRxxoY6W.js","./assets/game-CZ34E6_0.js","./assets/game-C_JpgzUP.js","./assets/game-C_j0yjcT.js","./assets/game-Cdfs0OHp.js","./assets/game-Cem3Jaqu.js","./assets/game-CfptnzRJ.js","./assets/game-Ch1EQkw6.js","./assets/game-Cjm1f4-O.js","./assets/game-CjrxOeF9.js","./assets/game-ClMBFR_5.js","./assets/game-CnZ1y4nK.js","./assets/game-CqMLUztb.js","./assets/game-Crv_XEOl.js","./assets/game-CskL5GPB.js","./assets/game-CvIOBlLD.js","./assets/game-Cvwo1h9Y.js","./assets/game-CwoM6o5I.js","./assets/game-D-EPJdXH.js","./assets/game-D22NW456.js","./assets/game-D6mv5fNT.js","./assets/game-DAIMzNwy.js","./assets/game-DGrDa-Iy.js","./assets/game-DHwr-e-e.js","./assets/game-DN2bYfHS.js","./assets/game-DT4DpD40.js","./assets/game-DWRWeqek.js","./assets/game-DXQijhRe.js","./assets/game-DXlTw5JP.js","./assets/game-DeAmxZZO.js","./assets/game-DgYvQ-Jr.js","./assets/game-DjT4oQ5z.js","./assets/game-Dkc3gw0e.js","./assets/game-Dlm7v41X.js","./assets/game-Dm6hzByv.js","./assets/game-Do7BxC0D.js","./assets/game-Dud3dGPN.js","./assets/game-DzFfjhsu.js","./assets/game-DzSjeBQe.js","./assets/game-E-w8KICc.js","./assets/game-K8yESKiZ.js","./assets/game-R555mzMz.js","./assets/game-R5ushAON.js","./assets/game-U0rkeezB.js","./assets/game-XADF0z_I.js","./assets/game-Y_a1Y4q4.js","./assets/game-_axIqrKm.js","./assets/game-b50t4Pdu.js","./assets/game-h1P85b6X.js","./assets/game-iDoEVsZw.js","./assets/game-je8snjlI.js","./assets/game-jfsCa4kp.js","./assets/game-ky-g2Q0w.js","./assets/game-ncxQr6uk.js","./assets/game-pTVoJ7iX.js","./assets/game-q1NmsD5u.js","./assets/game-tkKoPR5X.js","./assets/game-u7K_fiPp.js","./assets/game-valt01xO.js","./assets/game-xsdJ8XGU.js","./assets/game-zMmTdSsc.js","./assets/gameSkins-BBxRnUsV.js","./assets/guards-BRQZjza9.js","./assets/hud-Dj9g6txC.js","./assets/jsx-runtime-DLNB9Qsn.js","./assets/moveFeed-DOq4MEUQ.js","./assets/reactGame-CW_smM-C.js","./assets/rng-CF0hxTOu.js","./assets/search-PBNH6H8g.js","./assets/soundSets-BbBkuu-T.js","./assets/spin-Cnqpf_xI.js","./assets/storage-FhXF3ulx.js","./assets/swapDuel-B9_GYR4y.js","./assets/terms-C33aV_tT.js","./assets/turns-COQCo-L-.js","./assets/ui-CsLMe9JX.js","./assets/useCoopGame-Dw9mk_e2.js","./assets/useCountdown-48T6VYL6.js","./assets/useElementSize-0Ho7WBKh.js","./assets/useHints-C6cZiAct.js","./assets/useOnlineMatch-bp7yTUAd.js","./assets/game-DPoCpSei.css","./assets/game-PqoHXDw_.css","./assets/index-C9RC8DEQ.css"];
 const PREFIX = 'mrd-offline-games-';   // additiv3.github.io teilt sich den Cache mit anderen Apps → nur eigene löschen
+
+/* Vorab laden in kleinen Päckchen (über 250 Dateien auf einmal überfordern schwaches Netz); was scheitert, wird einmal
+   wiederholt. Fehlt danach noch etwas, holt cacheFirst() es beim ersten Öffnen des Spiels nach. */
+function precache(cache, urls) {
+  const failed = [];
+  const one = (u) => cache.add(new Request(u, { cache: 'reload' })).catch(() => { failed.push(u); });
+  let chain = Promise.resolve();
+  for (let i = 0; i < urls.length; i += 12) {
+    const part = urls.slice(i, i + 12);
+    chain = chain.then(() => Promise.all(part.map(one)));
+  }
+  return chain.then(() => failed);
+}
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE)
-    .then((c) => Promise.all(PRECACHE.map((u) => c.add(new Request(u, { cache: 'reload' })).catch(() => {}))))
+    .then((c) => precache(c, PRECACHE).then((failed) => (failed.length ? precache(c, failed) : failed)))
     .then(() => self.skipWaiting()));
 });
 
+/* Alte Vorräte NICHT sofort löschen: Eine noch offene Seite der alten Version lädt ihre Spiele (Dateien mit altem Hash)
+   sonst ins Leere – „Spiel konnte nicht geladen werden“. Aufgeräumt wird beim nächsten Seitenaufruf (siehe fetch). */
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys()
-    .then((ks) => Promise.all(ks.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
-    .then(() => self.clients.claim()));
+  e.waitUntil(self.clients.claim());
 });
 
+function dropOldCaches() {
+  // Wird gerade eine neuere Version eingerichtet, gehört ein „fremder“ Vorrat ihr – dann nichts anfassen.
+  if (self.registration.installing || self.registration.waiting) return Promise.resolve();
+  return caches.keys()
+    .then((ks) => Promise.all(ks.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+    .catch(() => {});
+}
+
 /* Netz zuerst (höchstens 4 s warten, dann Speicher): eine neue Version ist sofort da,
-   im Funkloch startet die App trotzdem aus dem Speicher. */
-function networkFirst(req) {
+   im Funkloch startet die App trotzdem aus dem Speicher.
+   Aus dem Speicher zählt zuerst der Vorrat DIESER Version (sonst käme eine alte Startseite, deren Dateien gleich gelöscht
+   werden); nur wenn dort nichts liegt, irgendein älterer – dann bleibt der alte Vorrat aber stehen (`keep`). */
+function networkFirst(req, isPage) {
   return new Promise((resolve) => {
     let done = false;
-    const fromCache = () => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html'));
+    const finish = (res, keep) => {
+      if (done) return;
+      done = true;
+      if (isPage && !keep) dropOldCaches();
+      resolve(res);
+    };
+    const fromCache = () => caches.open(CACHE)
+      .then((c) => c.match(req, { ignoreSearch: true }).then((hit) => hit || c.match('./index.html')))
+      .then((own) => (own ? { res: own, keep: false } : caches.match(req, { ignoreSearch: true })
+        .then((hit) => hit || caches.match('./index.html'))
+        .then((old) => ({ res: old, keep: true }))));
     const timer = setTimeout(() => {
-      fromCache().then((hit) => { if (hit && !done) { done = true; resolve(hit); } });
+      fromCache().then((hit) => { if (hit.res) finish(hit.res, hit.keep); });
     }, 4000);
     // Neue Anfrage nur aus der URL: Seitenaufrufe (mode 'navigate') lassen sich in älterem Safari nicht mit Optionen kopieren
     fetch(new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' })).then((res) => {
       clearTimeout(timer);
       if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {}); }
-      if (!done) { done = true; resolve(res); }
+      finish(res, !(res && res.ok));
     }).catch(() => {
       clearTimeout(timer);
-      fromCache().then((hit) => { if (!done) { done = true; resolve(hit || Response.error()); } });
+      fromCache().then((hit) => finish(hit.res || Response.error(), hit.keep));
     });
   });
 }
@@ -53,5 +86,6 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;            // Firebase & Co.: nie aus dem Cache
   if (url.pathname.endsWith('/version.json')) return;         // Update-Prüfung: immer frisch aus dem Netz
   if (url.pathname.includes('/assets/')) { e.respondWith(cacheFirst(req)); return; }
-  e.respondWith(networkFirst(req));
+  // Seitenaufruf = die App startet frisch mit der neuen Version → danach dürfen alte Vorräte weg (siehe networkFirst).
+  e.respondWith(networkFirst(req, req.mode === 'navigate'));
 });
